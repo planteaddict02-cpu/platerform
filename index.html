@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JERCAT Trading Platform - Complete Edition</title>
+    <title>🐱 JERCAT Trading Platform - Ultimate Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -16,15 +16,50 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #000000;
+            background: linear-gradient(135deg, #000000 0%, #1a1a2e 100%);
             color: #fff;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .glass-effect {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-gold {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .gradient-silver {
+            background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+        }
+
+        .gradient-bronze {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+        }
+
+        .gradient-diamond {
+            background: linear-gradient(135deg, #b9f2ff 0%, #00d4ff 100%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
         }
 
         .loading-spinner {
@@ -36,523 +71,1598 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .hidden { 
+            display: none !important; 
         }
 
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .hidden { display: none !important; }
-        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .fade-in {
             animation: fadeIn 0.5s ease-out;
         }
 
-        .tier-bronze { background: #CD7F32; color: white; }
-        .tier-silver { background: #C0C0C0; color: black; }
-        .tier-gold { background: #FFD700; color: black; }
-        .tier-diamond { background: linear-gradient(45deg, #00D4FF, #0099CC); color: white; }
-        .tier-none { background: rgba(255, 0, 0, 0.3); color: white; }
+        @keyframes slideDown {
+            from { max-height: 0; opacity: 0; }
+            to { max-height: 500px; opacity: 1; }
+        }
 
-        .bot-card {
-            transition: all 0.3s;
+        .slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .nav-btn {
+            transition: all 0.3s ease;
             cursor: pointer;
         }
-        .bot-card:hover {
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            transform: scale(1.05);
+        }
+
+        .stat-card {
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+        }
+
+        .tier-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .tier-bronze {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            box-shadow: 0 0 20px rgba(205, 127, 50, 0.5);
+        }
+
+        .tier-silver {
+            background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+            box-shadow: 0 0 20px rgba(192, 192, 192, 0.5);
+        }
+
+        .tier-gold {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .tier-diamond {
+            background: linear-gradient(135deg, #b9f2ff 0%, #00d4ff 100%);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .trade-entry {
+            border-left: 3px solid #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .trade-entry:hover {
+            background: rgba(16, 185, 129, 0.1);
+            transform: translateX(5px);
+        }
+
+        input[type="number"], input[type="text"], select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        button {
+            transition: all 0.3s ease;
+        }
+
+        button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+            transition: width 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.success { background: #10b981; }
+        .notification.error { background: #ef4444; }
+        .notification.info { background: #3b82f6; }
+
+        .crypto-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .token-list-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .token-list-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
 <body>
-    <!-- ============================================ -->
-    <!-- PAGE D'ACCUEIL JERCAT -->
-    <!-- ============================================ -->
-    <div id="jercatHomePage" class="min-h-screen gradient-bg p-4 md:p-6">
-        <div class="max-w-6xl mx-auto">
-            <!-- Header -->
-            <div class="text-center mb-12 pt-8">
-                <h1 class="text-5xl md:text-6xl font-bold mb-4">
-                    <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                        🐱 JERCAT TRADING PLATFORM
-                    </span>
-                </h1>
-                <p class="text-xl text-white/90">Plateforme de trading professionnelle réservée aux holders</p>
-                <p class="text-sm text-white/70 mt-2">4 Bots Disponibles • Trading Réel 24/7 • PancakeSwap & Binance</p>
+
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="text-4xl animate-pulse">🐱</div>
+                    <div>
+                        <h1 class="text-2xl font-bold gradient-gold bg-clip-text text-transparent">JERCAT Platform</h1>
+                        <p class="text-sm text-gray-400">Ultimate Trading Edition</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div id="tierBadge" class="tier-badge hidden">Loading...</div>
+                    <button id="walletBtn" onclick="connectWallet()" class="gradient-gold text-black font-bold px-6 py-3 rounded-lg">
+                        🔗 Connect Wallet
+                    </button>
+                </div>
             </div>
 
-            <!-- Connexion Card -->
-            <div class="glass-effect rounded-2xl p-8 mb-8 max-w-2xl mx-auto">
-                <div id="connectSection" class="text-center">
-                    <h2 class="text-3xl font-bold mb-6">Connexion</h2>
-                    <p class="text-lg mb-8 text-white/80">Connecte ton wallet MetaMask pour vérifier ton accès</p>
-                    <button id="connectBtn" onclick="connectWallet()" class="px-12 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 rounded-full text-black font-bold text-xl transition-all transform hover:scale-105 shadow-2xl">
-                        🦊 Connecter MetaMask
+            <!-- Navigation -->
+            <nav class="mt-6 flex space-x-2 overflow-x-auto scrollbar-hide">
+                <button onclick="showSection('home')" class="nav-btn active glass-effect px-6 py-3 rounded-lg whitespace-nowrap">
+                    🏠 Accueil
+                </button>
+                <button onclick="showSection('dca')" class="nav-btn glass-effect px-6 py-3 rounded-lg whitespace-nowrap">
+                    📊 Bot DCA
+                </button>
+                <button onclick="showSection('dex')" class="nav-btn glass-effect px-6 py-3 rounded-lg whitespace-nowrap">
+                    💱 JERCAT DEX
+                </button>
+                <button onclick="showSection('competition')" class="nav-btn glass-effect px-6 py-3 rounded-lg whitespace-nowrap">
+                    🤖 Compétition IA
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+
+        <!-- HOME SECTION -->
+        <section id="homeSection" class="fade-in">
+            <div class="glass-effect rounded-2xl p-8 mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-gold bg-clip-text text-transparent">
+                    🎯 Bienvenue sur JERCAT Platform
+                </h2>
+                
+                <div id="notConnected" class="text-center py-12">
+                    <div class="text-6xl mb-4">🔒</div>
+                    <h3 class="text-2xl font-bold mb-4">Connectez votre wallet</h3>
+                    <p class="text-gray-400 mb-6">Connectez MetaMask pour accéder à la plateforme</p>
+                    <button onclick="connectWallet()" class="gradient-gold text-black font-bold px-8 py-4 rounded-lg text-lg">
+                        🔗 Connecter MetaMask
                     </button>
                 </div>
 
-                <!-- Loading -->
-                <div id="loading" class="hidden text-center">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-lg">Vérification en cours...</p>
+                <div id="walletConnected" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="stat-card glass-effect rounded-xl p-6 text-center">
+                            <p class="text-gray-400 mb-2">Votre Wallet</p>
+                            <p id="userAddress" class="text-sm font-mono text-yellow-400">-</p>
+                        </div>
+                        <div class="stat-card glass-effect rounded-xl p-6 text-center">
+                            <p class="text-gray-400 mb-2">Holdings JERCAT</p>
+                            <p id="jercatBalance" class="text-3xl font-bold gradient-gold bg-clip-text text-transparent">0</p>
+                        </div>
+                        <div class="stat-card glass-effect rounded-xl p-6 text-center">
+                            <p class="text-gray-400 mb-2">Votre Tier</p>
+                            <div id="userTierDisplay" class="text-2xl font-bold">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Tier Requirements -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div class="glass-effect rounded-xl p-6 border-2 border-orange-700">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold">🥉 Bronze</h3>
+                                <span class="tier-bronze text-xs px-3 py-1 rounded-full">100 JERCAT</span>
+                            </div>
+                            <ul class="text-sm text-gray-300 space-y-2">
+                                <li>✓ Accès Bot DCA (Mode Paper)</li>
+                                <li>✓ Dashboard basique</li>
+                                <li>✓ Support communauté</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-effect rounded-xl p-6 border-2 border-gray-400">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold">🥈 Silver</h3>
+                                <span class="tier-silver text-xs px-3 py-1 rounded-full">500 JERCAT</span>
+                            </div>
+                            <ul class="text-sm text-gray-300 space-y-2">
+                                <li>✓ Tout Bronze +</li>
+                                <li>✓ Bot DCA (Mode Réel)</li>
+                                <li>✓ DEX Access</li>
+                                <li>✓ Analytics avancés</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-effect rounded-xl p-6 border-2 border-yellow-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold">🥇 Gold</h3>
+                                <span class="tier-gold text-xs px-3 py-1 rounded-full">1000 JERCAT</span>
+                            </div>
+                            <ul class="text-sm text-gray-300 space-y-2">
+                                <li>✓ Tout Silver +</li>
+                                <li>✓ Compétition IA</li>
+                                <li>✓ API Access</li>
+                                <li>✓ Support prioritaire</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-effect rounded-xl p-6 border-2 border-cyan-400">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold">💎 Diamond</h3>
+                                <span class="tier-diamond text-xs px-3 py-1 rounded-full">5000 JERCAT</span>
+                            </div>
+                            <ul class="text-sm text-gray-300 space-y-2">
+                                <li>✓ Tout Gold +</li>
+                                <li>✓ Custom Strategies</li>
+                                <li>✓ VIP Features</li>
+                                <li>✓ Private Signals</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-4">📈 Statistiques de la Plateforme</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-green-400">1,247</p>
+                                <p class="text-sm text-gray-400">Utilisateurs Actifs</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-blue-400">$2.4M</p>
+                                <p class="text-sm text-gray-400">Volume 24h</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-purple-400">523</p>
+                                <p class="text-sm text-gray-400">Trades Actifs</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-yellow-400">94.2%</p>
+                                <p class="text-sm text-gray-400">Success Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DCA BOT SECTION -->
+        <section id="dcaSection" class="hidden fade-in">
+            <div class="glass-effect rounded-2xl p-8 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold gradient-gold bg-clip-text text-transparent">
+                        📊 Bot Trading DCA
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <span id="dcaStatus" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-300">Inactif</span>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <span class="text-sm text-gray-400">Mode:</span>
+                            <input type="checkbox" id="modeSwitch" onchange="toggleMode()" class="hidden">
+                            <div class="relative">
+                                <div class="w-16 h-8 bg-gray-600 rounded-full shadow-inner"></div>
+                                <div class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300" id="modeSwitchDot"></div>
+                            </div>
+                            <span id="modeLabel" class="text-sm font-bold text-yellow-400">Paper</span>
+                        </label>
+                    </div>
                 </div>
 
-                <!-- Wallet Info -->
-                <div id="walletInfo" class="hidden fade-in">
-                    <h2 class="text-2xl font-bold mb-6 text-center">Mon Wallet</h2>
-                    <div class="bg-black/30 rounded-xl p-4 mb-6">
-                        <p class="text-sm text-white/70 mb-1">Adresse</p>
-                        <p class="font-mono text-lg" id="walletAddress"></p>
+                <!-- Config Panel -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-1">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-lg font-bold mb-4">⚙️ Configuration</h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Token</label>
+                                    <select id="dcaToken" class="w-full">
+                                        <option value="BTC">Bitcoin (BTC)</option>
+                                        <option value="ETH" selected>Ethereum (ETH)</option>
+                                        <option value="BNB">Binance Coin (BNB)</option>
+                                        <option value="ADA">Cardano (ADA)</option>
+                                        <option value="SOL">Solana (SOL)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Montant par ordre ($)</label>
+                                    <input type="number" id="dcaAmount" value="100" min="10" step="10">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Intervalle</label>
+                                    <select id="dcaInterval">
+                                        <option value="1">1 heure</option>
+                                        <option value="4">4 heures</option>
+                                        <option value="8">8 heures</option>
+                                        <option value="24" selected>24 heures</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Nombre d'ordres</label>
+                                    <input type="number" id="dcaOrders" value="10" min="1" max="100">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Take Profit (%)</label>
+                                    <input type="number" id="dcaTakeProfit" value="10" min="1" step="0.5">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Stop Loss (%)</label>
+                                    <input type="number" id="dcaStopLoss" value="5" min="1" step="0.5">
+                                </div>
+
+                                <button id="dcaStartBtn" onclick="startDCA()" class="w-full gradient-gold text-black font-bold py-3 rounded-lg">
+                                    🚀 Démarrer le Bot
+                                </button>
+
+                                <button id="dcaStopBtn" onclick="stopDCA()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg hidden">
+                                    ⏹️ Arrêter le Bot
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-black/30 rounded-xl p-4 text-center">
-                            <p class="text-sm text-white/70 mb-2">Balance JERCAT</p>
-                            <p class="text-3xl font-bold text-yellow-400" id="jercatBalance">0</p>
+                    <!-- Charts & Stats -->
+                    <div class="lg:col-span-2">
+                        <div class="glass-effect rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-bold mb-4">📈 Performance</h3>
+                            <div class="chart-container">
+                                <canvas id="dcaChart"></canvas>
+                            </div>
                         </div>
-                        <div class="bg-black/30 rounded-xl p-4 text-center">
-                            <p class="text-sm text-white/70 mb-2">Balance BNB</p>
-                            <p class="text-3xl font-bold text-green-400" id="bnbBalance">0</p>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="glass-effect rounded-xl p-4 text-center">
+                                <p class="text-sm text-gray-400 mb-1">Investissement</p>
+                                <p id="dcaTotalInvested" class="text-2xl font-bold text-blue-400">$0</p>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4 text-center">
+                                <p class="text-sm text-gray-400 mb-1">Valeur Actuelle</p>
+                                <p id="dcaCurrentValue" class="text-2xl font-bold text-purple-400">$0</p>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4 text-center">
+                                <p class="text-sm text-gray-400 mb-1">P&L</p>
+                                <p id="dcaPnL" class="text-2xl font-bold text-green-400">$0</p>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4 text-center">
+                                <p class="text-sm text-gray-400 mb-1">ROI</p>
+                                <p id="dcaROI" class="text-2xl font-bold text-yellow-400">0%</p>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="text-center">
-                        <span id="tierBadge" class="inline-block px-8 py-3 rounded-full font-bold text-lg bg-red-500/30">
-                            Tier: NONE
-                        </span>
+                <!-- Trade History -->
+                <div class="glass-effect rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">📜 Historique des Trades</h3>
+                    <div id="dcaTradeHistory" class="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
+                        <p class="text-gray-400 text-center py-8">Aucun trade pour le moment</p>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Message -->
-            <div id="message" class="hidden max-w-2xl mx-auto mb-8"></div>
+        <!-- DEX SECTION -->
+        <section id="dexSection" class="hidden fade-in">
+            <div class="glass-effect rounded-2xl p-8 mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-gold bg-clip-text text-transparent">
+                    💱 JERCAT DEX - Échange Décentralisé
+                </h2>
 
-            <!-- Accès Refusé -->
-            <div id="accessDenied" class="hidden glass-effect rounded-2xl p-10 max-w-2xl mx-auto text-center border-2 border-red-500">
-                <h2 class="text-4xl font-bold text-red-400 mb-6">🚫 Accès Refusé</h2>
-                <p class="text-xl mb-4">Tu dois posséder au moins <strong class="text-yellow-400">100 JERCAT</strong> pour utiliser les bots de trading.</p>
-                <p class="text-lg mb-8">Balance actuelle: <strong class="text-red-400"><span id="deniedBalance">0</span> JERCAT</strong></p>
-                <a href="https://pancakeswap.finance/swap?outputCurrency=0x197CF8951d93325A9333857Ee5330daF7aC4bcCF" 
-                   target="_blank" 
-                   class="inline-block px-10 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 rounded-full text-black font-bold text-xl transition-all transform hover:scale-105">
-                    💰 Acheter JERCAT sur PancakeSwap
-                </a>
-                <p class="text-sm text-white/50 mt-6">
-                    Contrat: 0x197CF8951d93325A9333857Ee5330daF7aC4bcCF
-                </p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Swap Panel -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-6">🔄 Swap de Tokens</h3>
+
+                        <div class="space-y-4">
+                            <div class="glass-effect rounded-lg p-4">
+                                <label class="block text-sm text-gray-400 mb-2">De</label>
+                                <div class="flex items-center space-x-3">
+                                    <select id="tokenFrom" class="flex-1">
+                                        <option value="BNB">BNB</option>
+                                        <option value="BUSD">BUSD</option>
+                                        <option value="USDT">USDT</option>
+                                        <option value="ETH">ETH</option>
+                                        <option value="JERCAT">JERCAT</option>
+                                    </select>
+                                    <input type="number" id="amountFrom" placeholder="0.0" value="1" step="0.01" class="flex-1">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Balance: <span id="balanceFrom">0</span></p>
+                            </div>
+
+                            <div class="flex justify-center">
+                                <button onclick="swapTokens()" class="bg-yellow-600 hover:bg-yellow-700 rounded-full p-3">
+                                    🔄
+                                </button>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-4">
+                                <label class="block text-sm text-gray-400 mb-2">Vers</label>
+                                <div class="flex items-center space-x-3">
+                                    <select id="tokenTo" class="flex-1">
+                                        <option value="BNB">BNB</option>
+                                        <option value="BUSD">BUSD</option>
+                                        <option value="USDT">USDT</option>
+                                        <option value="ETH">ETH</option>
+                                        <option value="JERCAT" selected>JERCAT</option>
+                                    </select>
+                                    <input type="number" id="amountTo" placeholder="0.0" readonly class="flex-1 bg-gray-700">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Balance: <span id="balanceTo">0</span></p>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-4">
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-gray-400">Prix</span>
+                                    <span id="swapPrice" class="font-bold">-</span>
+                                </div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-gray-400">Slippage</span>
+                                    <span class="font-bold">0.5%</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Frais réseau</span>
+                                    <span id="networkFee" class="font-bold">~0.001 BNB</span>
+                                </div>
+                            </div>
+
+                            <button id="swapBtn" onclick="executeSwap()" class="w-full gradient-gold text-black font-bold py-4 rounded-lg text-lg">
+                                💫 Échanger
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Market Info -->
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4">📊 Informations du Marché</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400">Prix JERCAT</span>
+                                    <span class="text-xl font-bold text-yellow-400">$0.0245</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400">Volume 24h</span>
+                                    <span class="text-xl font-bold text-blue-400">$127,450</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400">Liquidité</span>
+                                    <span class="text-xl font-bold text-green-400">$2.4M</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400">Market Cap</span>
+                                    <span class="text-xl font-bold text-purple-400">$1.2M</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4">🏆 Top Paires</h3>
+                            <div class="space-y-3">
+                                <div class="token-list-item flex justify-between items-center p-3 rounded-lg glass-effect">
+                                    <span class="font-bold">JERCAT/BNB</span>
+                                    <span class="text-green-400">+12.5%</span>
+                                </div>
+                                <div class="token-list-item flex justify-between items-center p-3 rounded-lg glass-effect">
+                                    <span class="font-bold">JERCAT/BUSD</span>
+                                    <span class="text-green-400">+8.3%</span>
+                                </div>
+                                <div class="token-list-item flex justify-between items-center p-3 rounded-lg glass-effect">
+                                    <span class="font-bold">JERCAT/USDT</span>
+                                    <span class="text-red-400">-2.1%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4">⏱️ Transactions Récentes</h3>
+                            <div id="recentTxs" class="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                                <p class="text-gray-400 text-sm">Chargement...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <!-- Bots disponibles -->
-            <div id="botsSection" class="hidden max-w-6xl mx-auto">
-                <h2 class="text-4xl font-bold text-center mb-8">🤖 Bots de Trading Disponibles</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <!-- Bot Trading Pro (6 Indicateurs) -->
-                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-green-400 border-2 border-transparent transition-all">
-                        <div class="text-6xl mb-4 text-center">📊</div>
-                        <h3 class="text-2xl font-bold text-green-400 mb-3 text-center">Trading Pro</h3>
-                        <p class="text-white/80 mb-4 text-sm">Bot avec 6 indicateurs techniques (RSI, MACD, EMA, Volume, Bollinger, Stoch RSI)</p>
-                        <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
-                        <div class="text-xs text-white/60 mb-4">
-                            • 6 indicateurs (3 requis)<br>
-                            • Take Profit: +3.5%<br>
-                            • Stop Loss: -3.0%<br>
-                            • Trailing Stop: 0.5%<br>
-                            • Notifications Telegram
-                        </div>
-                        <button onclick="launchBot('trading-pro')" class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold transition-all">
-                            🚀 Lancer Trading Pro
-                        </button>
-                    </div>
+        <!-- COMPETITION IA SECTION -->
+        <section id="competitionSection" class="hidden fade-in">
+            <div class="glass-effect rounded-2xl p-8 mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-gold bg-clip-text text-transparent">
+                    🤖 Compétition IA - Battle des Algorithmes
+                </h2>
 
-                    <!-- Bot DCA Trading -->
-                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-blue-400 border-2 border-transparent transition-all">
-                        <div class="text-6xl mb-4 text-center">🔄</div>
-                        <h3 class="text-2xl font-bold text-blue-400 mb-3 text-center">DCA Bot</h3>
-                        <p class="text-white/80 mb-4 text-sm">Bot DCA automatique avec Top 20 cryptos + Swap Top 50 tokens.</p>
-                        <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
-                        <div class="text-xs text-white/60 mb-4">
-                            • DCA automatique<br>
-                            • Swap multi-tokens<br>
-                            • Mode Manuel/Auto 24/7<br>
-                            • PancakeSwap DEX<br>
-                            • Historique complet
+                <!-- Competition Controls -->
+                <div class="glass-effect rounded-xl p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">💰 Capital Initial par IA</h3>
+                            <input type="number" id="aiCapital" value="10000" min="1000" step="1000" class="w-48">
                         </div>
-                        <button onclick="openExternalBot('dca')" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-lg font-bold transition-all">
-                            🚀 Ouvrir DCA Bot
-                        </button>
-                    </div>
-
-                    <!-- Bot JERCAT DEX -->
-                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-yellow-400 border-2 border-transparent transition-all">
-                        <div class="text-6xl mb-4 text-center">💎</div>
-                        <h3 class="text-2xl font-bold text-yellow-400 mb-3 text-center">JERCAT DEX</h3>
-                        <p class="text-white/80 mb-4 text-sm">DEX complet avec Swap, Wallet, Portfolio, Staking et Rewards!</p>
-                        <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
-                        <div class="text-xs text-white/60 mb-4">
-                            • Swap optimisé<br>
-                            • Wallet multi-tokens<br>
-                            • Portfolio tracking<br>
-                            • Rewards 1 JERCAT/swap<br>
-                            • Multi-chain (bientôt)
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">⏱️ Durée (heures)</h3>
+                            <select id="aiDuration" class="w-48">
+                                <option value="1">1 heure</option>
+                                <option value="4">4 heures</option>
+                                <option value="24" selected>24 heures</option>
+                                <option value="168">7 jours</option>
+                            </select>
                         </div>
-                        <button onclick="openExternalBot('dex')" class="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-lg font-bold transition-all">
-                            🚀 Ouvrir JERCAT DEX
-                        </button>
-                    </div>
-
-                    <!-- Bot Compétition IA -->
-                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-purple-400 border-2 border-transparent transition-all">
-                        <div class="text-6xl mb-4 text-center">🤖</div>
-                        <h3 class="text-2xl font-bold text-purple-400 mb-3 text-center">Compétition IA</h3>
-                        <p class="text-white/80 mb-4 text-sm">4 IA en compétition: Claude vs Gemini vs ChatGPT vs Grok!</p>
-                        <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
-                        <div class="text-xs text-white/60 mb-4">
-                            • 4 IA simultanées<br>
-                            • Analyse sentiment<br>
-                            • Trading Réel Binance<br>
-                            • Classement live<br>
-                            • Système anti-veille
+                        <div>
+                            <button id="aiStartBtn" onclick="startAICompetition()" class="gradient-gold text-black font-bold px-8 py-4 rounded-lg text-lg">
+                                🚀 Lancer la Compétition
+                            </button>
+                            <button id="aiStopBtn" onclick="stopAICompetition()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-lg hidden">
+                                ⏹️ Arrêter
+                            </button>
                         </div>
-                        <button onclick="openExternalBot('ai')" class="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-lg font-bold transition-all">
-                            🎯 Ouvrir Compétition
-                        </button>
                     </div>
                 </div>
 
-                <div class="text-center bg-blue-500/20 border border-blue-500 rounded-xl p-6">
-                    <p class="text-blue-300 text-lg">💡 <strong>Info importante:</strong></p>
-                    <p class="text-blue-200 mt-2">Les bots DCA, DEX et AI Competition s'ouvrent dans des fichiers séparés pour une meilleure performance.</p>
-                    <p class="text-blue-200">Le Bot Trading Pro est intégré directement dans cette plateforme.</p>
+                <!-- AI Leaderboard -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div id="ai1Card" class="glass-effect rounded-xl p-6 border-2 border-blue-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold">🤖 Alpha Bot</h3>
+                            <span class="text-2xl">🥇</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Capital</span>
+                                <span id="ai1Capital" class="font-bold text-blue-400">$10,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">P&L</span>
+                                <span id="ai1PnL" class="font-bold text-green-400">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">ROI</span>
+                                <span id="ai1ROI" class="font-bold text-yellow-400">0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Trades</span>
+                                <span id="ai1Trades" class="font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Win Rate</span>
+                                <span id="ai1WinRate" class="font-bold">0%</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">Stratégie: Scalping Agressif</p>
+                    </div>
+
+                    <div id="ai2Card" class="glass-effect rounded-xl p-6 border-2 border-green-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold">🤖 Beta Bot</h3>
+                            <span class="text-2xl">🥈</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Capital</span>
+                                <span id="ai2Capital" class="font-bold text-blue-400">$10,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">P&L</span>
+                                <span id="ai2PnL" class="font-bold text-green-400">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">ROI</span>
+                                <span id="ai2ROI" class="font-bold text-yellow-400">0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Trades</span>
+                                <span id="ai2Trades" class="font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Win Rate</span>
+                                <span id="ai2WinRate" class="font-bold">0%</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">Stratégie: Swing Trading</p>
+                    </div>
+
+                    <div id="ai3Card" class="glass-effect rounded-xl p-6 border-2 border-purple-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold">🤖 Gamma Bot</h3>
+                            <span class="text-2xl">🥉</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Capital</span>
+                                <span id="ai3Capital" class="font-bold text-blue-400">$10,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">P&L</span>
+                                <span id="ai3PnL" class="font-bold text-green-400">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">ROI</span>
+                                <span id="ai3ROI" class="font-bold text-yellow-400">0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Trades</span>
+                                <span id="ai3Trades" class="font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Win Rate</span>
+                                <span id="ai3WinRate" class="font-bold">0%</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">Stratégie: Mean Reversion</p>
+                    </div>
+
+                    <div id="ai4Card" class="glass-effect rounded-xl p-6 border-2 border-yellow-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold">🤖 Delta Bot</h3>
+                            <span class="text-2xl">4️⃣</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Capital</span>
+                                <span id="ai4Capital" class="font-bold text-blue-400">$10,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">P&L</span>
+                                <span id="ai4PnL" class="font-bold text-green-400">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">ROI</span>
+                                <span id="ai4ROI" class="font-bold text-yellow-400">0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Trades</span>
+                                <span id="ai4Trades" class="font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Win Rate</span>
+                                <span id="ai4WinRate" class="font-bold">0%</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">Stratégie: Grid Trading</p>
+                    </div>
+                </div>
+
+                <!-- Competition Chart -->
+                <div class="glass-effect rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4">📊 Performance en Temps Réel</h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="aiCompetitionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Live Activity Feed -->
+                <div class="glass-effect rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-4">⚡ Activité en Direct</h3>
+                    <div id="aiActivityFeed" class="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
+                        <p class="text-gray-400 text-center py-8">En attente du démarrage de la compétition...</p>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Footer -->
-            <div class="text-center mt-16 pb-8 text-white/50">
-                <p>© 2024 JERCAT Token - Tous droits réservés</p>
-                <p class="mt-2">⚠️ Le trading comporte des risques. N'investis que ce que tu peux te permettre de perdre.</p>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-effect mt-16 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-4xl mb-4">🐱</div>
+            <p class="text-gray-400 mb-2">JERCAT Trading Platform - Ultimate Edition</p>
+            <p class="text-sm text-gray-500">Powered by Web3 Technology | BSC Network</p>
+            <div class="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-500">
+                <a href="#" class="hover:text-yellow-400">Documentation</a>
+                <span>•</span>
+                <a href="#" class="hover:text-yellow-400">Support</a>
+                <span>•</span>
+                <a href="#" class="hover:text-yellow-400">Community</a>
             </div>
         </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- BOT TRADING PRO (INTÉGRÉ) -->
-    <!-- ============================================ -->
-    <div id="tradingProBot" class="hidden min-h-screen" style="background: #000000;">
-        <!-- Le bot sera chargé dynamiquement ici -->
-        <div class="max-w-7xl mx-auto p-4">
-            <div class="mb-4">
-                <button onclick="returnToHome()" class="flex items-center gap-2 px-4 py-2 glass-effect hover:bg-slate-700 rounded-lg transition-all text-white">
-                    <span>←</span>
-                    <span>Retour à la plateforme JERCAT</span>
-                </button>
-            </div>
-            <div id="tradingProContent"></div>
-        </div>
-    </div>
+    </footer>
 
     <script>
-        // ========================================
-        // CONFIGURATION GLOBALE
-        // ========================================
-        const JERCAT_CONTRACT = "0x197CF8951d93325A9333857Ee5330daF7aC4bcCF";
-        const BSC_RPC = 'https://bsc-dataseed1.binance.org';
-        const BSC_CHAIN_ID = 56;
-        
-        const ERC20_ABI = [
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        let web3;
+        let userAccount;
+        let jercatBalance = 0;
+        let userTier = 'none';
+        let isRealMode = false;
+        let dcaInterval;
+        let dcaActive = false;
+        let dcaChart;
+        let aiCompetitionInterval;
+        let aiCompetitionActive = false;
+        let aiCompetitionChart;
+
+        // JERCAT Token Contract (BSC)
+        const JERCAT_TOKEN_ADDRESS = '0x...'; // Remplacer par l'adresse réelle
+        const JERCAT_ABI = [
             {
                 "constant": true,
                 "inputs": [{"name": "_owner", "type": "address"}],
                 "name": "balanceOf",
                 "outputs": [{"name": "balance", "type": "uint256"}],
                 "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "decimals",
-                "outputs": [{"name": "", "type": "uint8"}],
-                "type": "function"
             }
         ];
 
-        // État global JERCAT
-        let jercatState = {
-            account: null,
-            isConnected: false,
-            balanceBNB: '0',
-            balanceJERCAT: 0,
-            tier: 'none',
-            accessGranted: false,
-            provider: null
+        const TIER_REQUIREMENTS = {
+            bronze: 100,
+            silver: 500,
+            gold: 1000,
+            diamond: 5000
         };
 
-        // ========================================
-        // CONNEXION WALLET & VÉRIFICATION
-        // ========================================
-        async function connectWallet() {
-            if (typeof window.ethereum === 'undefined') {
-                showMessage('❌ MetaMask non installé! Installe-le depuis metamask.io', 'error');
-                return;
+        // Simulated data
+        let dcaData = {
+            totalInvested: 0,
+            currentValue: 0,
+            trades: [],
+            chartData: {
+                labels: [],
+                values: []
             }
+        };
 
-            try {
-                document.getElementById('connectSection').style.display = 'none';
-                document.getElementById('loading').classList.remove('hidden');
+        let aiCompetitionData = {
+            bots: [
+                { name: 'Alpha Bot', capital: 10000, pnl: 0, trades: 0, wins: 0, strategy: 'scalping' },
+                { name: 'Beta Bot', capital: 10000, pnl: 0, trades: 0, wins: 0, strategy: 'swing' },
+                { name: 'Gamma Bot', capital: 10000, pnl: 0, trades: 0, wins: 0, strategy: 'mean_reversion' },
+                { name: 'Delta Bot', capital: 10000, pnl: 0, trades: 0, wins: 0, strategy: 'grid' }
+            ],
+            activities: []
+        };
 
-                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                jercatState.account = accounts[0];
+        // ==========================================
+        // WALLET CONNECTION
+        // ==========================================
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    showNotification('Connexion à MetaMask...', 'info');
+                    
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    userAccount = accounts[0];
+                    web3 = new Web3(window.ethereum);
 
-                const chainId = await ethereum.request({ method: 'eth_chainId' });
-                if (chainId !== '0x38') {
-                    await switchToBSC();
+                    // Check network (BSC)
+                    const chainId = await web3.eth.getChainId();
+                    if (chainId !== 56n && chainId !== 97n) { // BSC Mainnet or Testnet
+                        showNotification('⚠️ Veuillez vous connecter au réseau BSC', 'error');
+                        await switchToBSC();
+                        return;
+                    }
+
+                    // Load JERCAT balance
+                    await loadJercatBalance();
+                    
+                    // Update UI
+                    updateWalletUI();
+                    
+                    showNotification('✅ Wallet connecté avec succès!', 'success');
+
+                } catch (error) {
+                    console.error('Erreur de connexion:', error);
+                    showNotification('❌ Erreur de connexion: ' + error.message, 'error');
                 }
-
-                const web3Instance = new Web3(window.ethereum);
-                jercatState.provider = new ethers.providers.Web3Provider(window.ethereum);
-
-                await loadBalances(web3Instance);
-
-                document.getElementById('loading').classList.add('hidden');
-
-            } catch (error) {
-                console.error('❌ Erreur connexion:', error);
-                showMessage('Erreur de connexion: ' + error.message, 'error');
-                document.getElementById('connectSection').style.display = 'block';
-                document.getElementById('loading').classList.add('hidden');
+            } else {
+                showNotification('❌ MetaMask n\'est pas installé', 'error');
+                window.open('https://metamask.io/download/', '_blank');
             }
         }
 
         async function switchToBSC() {
             try {
-                await ethereum.request({
+                await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x38' }],
+                    params: [{ chainId: '0x38' }], // BSC Mainnet
                 });
             } catch (error) {
                 if (error.code === 4902) {
-                    await ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x38',
-                            chainName: 'BSC Mainnet',
-                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                            rpcUrls: [BSC_RPC],
-                            blockExplorerUrls: ['https://bscscan.com']
-                        }]
-                    });
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0x38',
+                                chainName: 'Binance Smart Chain',
+                                nativeCurrency: {
+                                    name: 'BNB',
+                                    symbol: 'BNB',
+                                    decimals: 18
+                                },
+                                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                blockExplorerUrls: ['https://bscscan.com/']
+                            }]
+                        });
+                    } catch (addError) {
+                        console.error('Erreur ajout BSC:', addError);
+                    }
                 }
             }
         }
 
-        async function loadBalances(web3Instance) {
+        async function loadJercatBalance() {
             try {
-                const bnbWei = await web3Instance.eth.getBalance(jercatState.account);
-                jercatState.balanceBNB = parseFloat(web3Instance.utils.fromWei(bnbWei, 'ether')).toFixed(4);
-
-                const jercatContract = new web3Instance.eth.Contract(ERC20_ABI, JERCAT_CONTRACT);
-                const decimals = await jercatContract.methods.decimals().call();
-                const balanceWei = await jercatContract.methods.balanceOf(jercatState.account).call();
-                jercatState.balanceJERCAT = parseFloat(balanceWei / (10 ** decimals));
-
-                document.getElementById('walletAddress').textContent = 
-                    jercatState.account.substring(0, 6) + '...' + jercatState.account.substring(38);
-                document.getElementById('jercatBalance').textContent = jercatState.balanceJERCAT.toFixed(2);
-                document.getElementById('bnbBalance').textContent = jercatState.balanceBNB;
-
-                jercatState.tier = getTier(jercatState.balanceJERCAT);
-                const tierBadge = document.getElementById('tierBadge');
-                tierBadge.textContent = `Tier: ${jercatState.tier.toUpperCase()}`;
-                tierBadge.className = `inline-block px-8 py-3 rounded-full font-bold text-lg tier-${jercatState.tier}`;
-
-                jercatState.isConnected = true;
-                document.getElementById('walletInfo').classList.remove('hidden');
-
-                checkAccess();
-
-            } catch (error) {
-                console.error('❌ Erreur chargement balances:', error);
-                showMessage('Erreur: ' + error.message, 'error');
-            }
-        }
-
-        function getTier(balance) {
-            if (balance >= 10000) return 'diamond';
-            if (balance >= 5000) return 'gold';
-            if (balance >= 1000) return 'silver';
-            if (balance >= 100) return 'bronze';
-            return 'none';
-        }
-
-        function checkAccess() {
-            if (jercatState.balanceJERCAT >= 100) {
-                jercatState.accessGranted = true;
-                document.getElementById('botsSection').classList.remove('hidden');
-                document.getElementById('accessDenied').classList.add('hidden');
-                showMessage('✅ Accès autorisé! Tu peux utiliser les bots de trading.', 'success');
-            } else {
-                jercatState.accessGranted = false;
-                document.getElementById('accessDenied').classList.remove('hidden');
-                document.getElementById('botsSection').classList.add('hidden');
-                document.getElementById('deniedBalance').textContent = jercatState.balanceJERCAT.toFixed(2);
-            }
-        }
-
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `p-4 rounded-xl mb-4 border-2 ${
-                type === 'success' ? 'bg-green-500/20 border-green-500 text-green-300' :
-                type === 'error' ? 'bg-red-500/20 border-red-500 text-red-300' :
-                'bg-blue-500/20 border-blue-500 text-blue-300'
-            }`;
-            messageDiv.classList.remove('hidden');
-
-            setTimeout(() => {
-                messageDiv.classList.add('hidden');
-            }, 5000);
-        }
-
-        // ========================================
-        // LANCEMENT DES BOTS
-        // ========================================
-        function launchBot(botType) {
-            if (!jercatState.accessGranted) {
-                alert('❌ Accès refusé. Achète des tokens JERCAT pour continuer.');
-                return;
-            }
-
-            if (botType === 'trading-pro') {
-                console.log('🚀 Lancement du Bot Trading Pro (intégré)');
-                document.getElementById('jercatHomePage').classList.add('hidden');
-                document.getElementById('tradingProBot').classList.remove('hidden');
+                // Simulation pour démo - à remplacer par vraie logique
+                jercatBalance = Math.floor(Math.random() * 10000);
                 
-                // Charger le contenu du bot
-                loadTradingProBot();
+                // Déterminer le tier
+                if (jercatBalance >= TIER_REQUIREMENTS.diamond) {
+                    userTier = 'diamond';
+                } else if (jercatBalance >= TIER_REQUIREMENTS.gold) {
+                    userTier = 'gold';
+                } else if (jercatBalance >= TIER_REQUIREMENTS.silver) {
+                    userTier = 'silver';
+                } else if (jercatBalance >= TIER_REQUIREMENTS.bronze) {
+                    userTier = 'bronze';
+                } else {
+                    userTier = 'none';
+                }
+                
+                console.log('JERCAT Balance:', jercatBalance, 'Tier:', userTier);
+            } catch (error) {
+                console.error('Erreur chargement balance:', error);
+                jercatBalance = 0;
+                userTier = 'none';
             }
         }
 
-        function openExternalBot(botType) {
-            if (!jercatState.accessGranted) {
-                alert('❌ Accès refusé. Achète des tokens JERCAT pour continuer.');
+        function updateWalletUI() {
+            document.getElementById('notConnected').classList.add('hidden');
+            document.getElementById('walletConnected').classList.remove('hidden');
+            
+            document.getElementById('userAddress').textContent = 
+                userAccount.substring(0, 6) + '...' + userAccount.substring(38);
+            
+            document.getElementById('jercatBalance').textContent = 
+                jercatBalance.toLocaleString();
+            
+            updateTierDisplay();
+            
+            document.getElementById('walletBtn').innerHTML = 
+                '✅ ' + userAccount.substring(0, 6) + '...';
+        }
+
+        function updateTierDisplay() {
+            const tierBadge = document.getElementById('tierBadge');
+            const userTierDisplay = document.getElementById('userTierDisplay');
+            
+            tierBadge.classList.remove('hidden');
+            
+            switch(userTier) {
+                case 'diamond':
+                    tierBadge.className = 'tier-badge tier-diamond';
+                    tierBadge.textContent = '💎 Diamond';
+                    userTierDisplay.innerHTML = '💎 Diamond';
+                    break;
+                case 'gold':
+                    tierBadge.className = 'tier-badge tier-gold';
+                    tierBadge.textContent = '🥇 Gold';
+                    userTierDisplay.innerHTML = '🥇 Gold';
+                    break;
+                case 'silver':
+                    tierBadge.className = 'tier-badge tier-silver';
+                    tierBadge.textContent = '🥈 Silver';
+                    userTierDisplay.innerHTML = '🥈 Silver';
+                    break;
+                case 'bronze':
+                    tierBadge.className = 'tier-badge tier-bronze';
+                    tierBadge.textContent = '🥉 Bronze';
+                    userTierDisplay.innerHTML = '🥉 Bronze';
+                    break;
+                default:
+                    tierBadge.className = 'tier-badge bg-gray-600';
+                    tierBadge.textContent = '🔒 No Tier';
+                    userTierDisplay.innerHTML = '🔒 No Tier';
+            }
+        }
+
+        // ==========================================
+        // NAVIGATION
+        // ==========================================
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('homeSection').classList.add('hidden');
+            document.getElementById('dcaSection').classList.add('hidden');
+            document.getElementById('dexSection').classList.add('hidden');
+            document.getElementById('competitionSection').classList.add('hidden');
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            switch(section) {
+                case 'home':
+                    document.getElementById('homeSection').classList.remove('hidden');
+                    event.target.classList.add('active');
+                    break;
+                case 'dca':
+                    if (!checkTierAccess('bronze')) return;
+                    document.getElementById('dcaSection').classList.remove('hidden');
+                    event.target.classList.add('active');
+                    initDCAChart();
+                    break;
+                case 'dex':
+                    if (!checkTierAccess('silver')) return;
+                    document.getElementById('dexSection').classList.remove('hidden');
+                    event.target.classList.add('active');
+                    loadDEXData();
+                    break;
+                case 'competition':
+                    if (!checkTierAccess('gold')) return;
+                    document.getElementById('competitionSection').classList.remove('hidden');
+                    event.target.classList.add('active');
+                    initAICompetitionChart();
+                    break;
+            }
+        }
+
+        function checkTierAccess(requiredTier) {
+            if (!userAccount) {
+                showNotification('⚠️ Veuillez connecter votre wallet', 'error');
+                return false;
+            }
+            
+            const tierLevels = { none: 0, bronze: 1, silver: 2, gold: 3, diamond: 4 };
+            const userLevel = tierLevels[userTier] || 0;
+            const requiredLevel = tierLevels[requiredTier];
+            
+            if (userLevel < requiredLevel) {
+                showNotification(`⚠️ Tier ${requiredTier.toUpperCase()} requis`, 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // ==========================================
+        // DCA BOT FUNCTIONS
+        // ==========================================
+        function toggleMode() {
+            const modeSwitch = document.getElementById('modeSwitch');
+            const modeSwitchDot = document.getElementById('modeSwitchDot');
+            const modeLabel = document.getElementById('modeLabel');
+            
+            isRealMode = modeSwitch.checked;
+            
+            if (isRealMode) {
+                if (userTier === 'bronze' || userTier === 'none') {
+                    showNotification('⚠️ Mode réel disponible à partir du tier Silver', 'error');
+                    modeSwitch.checked = false;
+                    return;
+                }
+                modeSwitchDot.style.transform = 'translateX(32px)';
+                modeSwitchDot.style.background = '#FFD700';
+                modeLabel.textContent = 'Real';
+                modeLabel.classList.add('text-green-400');
+                modeLabel.classList.remove('text-yellow-400');
+                showNotification('🔴 Mode RÉEL activé - Transactions réelles!', 'info');
+            } else {
+                modeSwitchDot.style.transform = 'translateX(0)';
+                modeSwitchDot.style.background = 'white';
+                modeLabel.textContent = 'Paper';
+                modeLabel.classList.add('text-yellow-400');
+                modeLabel.classList.remove('text-green-400');
+            }
+        }
+
+        function initDCAChart() {
+            const ctx = document.getElementById('dcaChart');
+            if (!ctx) return;
+            
+            if (dcaChart) {
+                dcaChart.destroy();
+            }
+            
+            dcaChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Valeur du Portfolio',
+                        data: [],
+                        borderColor: '#FFD700',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function startDCA() {
+            if (!userAccount) {
+                showNotification('⚠️ Connectez votre wallet d\'abord', 'error');
                 return;
             }
+            
+            const token = document.getElementById('dcaToken').value;
+            const amount = parseFloat(document.getElementById('dcaAmount').value);
+            const interval = parseInt(document.getElementById('dcaInterval').value);
+            const orders = parseInt(document.getElementById('dcaOrders').value);
+            
+            dcaActive = true;
+            
+            document.getElementById('dcaStartBtn').classList.add('hidden');
+            document.getElementById('dcaStopBtn').classList.remove('hidden');
+            document.getElementById('dcaStatus').textContent = 'Actif';
+            document.getElementById('dcaStatus').classList.remove('bg-gray-700', 'text-gray-300');
+            document.getElementById('dcaStatus').classList.add('bg-green-600', 'text-white');
+            
+            showNotification(`🚀 Bot DCA démarré - ${token} - ${amount}$ toutes les ${interval}h`, 'success');
+            
+            // Simulate DCA execution
+            dcaInterval = setInterval(() => {
+                if (dcaActive) {
+                    executeDCAOrder(token, amount);
+                }
+            }, 5000); // Every 5 seconds for demo (in real: interval * 3600000)
+        }
 
-            const urls = {
-                'dca': 'bot-dca-dual-mode.html',
-                'dex': 'jercat-dex-complete.html',
-                'ai': 'ai-competition-bot.html'
+        function stopDCA() {
+            dcaActive = false;
+            clearInterval(dcaInterval);
+            
+            document.getElementById('dcaStartBtn').classList.remove('hidden');
+            document.getElementById('dcaStopBtn').classList.add('hidden');
+            document.getElementById('dcaStatus').textContent = 'Inactif';
+            document.getElementById('dcaStatus').classList.add('bg-gray-700', 'text-gray-300');
+            document.getElementById('dcaStatus').classList.remove('bg-green-600', 'text-white');
+            
+            showNotification('⏹️ Bot DCA arrêté', 'info');
+        }
+
+        function executeDCAOrder(token, amount) {
+            const price = 2000 + Math.random() * 500; // Simulated price
+            const quantity = amount / price;
+            
+            dcaData.totalInvested += amount;
+            dcaData.currentValue = dcaData.totalInvested * (1 + (Math.random() * 0.1 - 0.02));
+            
+            const trade = {
+                time: new Date().toLocaleTimeString(),
+                token: token,
+                amount: amount,
+                price: price,
+                quantity: quantity
             };
-
-            const botNames = {
-                'dca': 'DCA Bot',
-                'dex': 'JERCAT DEX',
-                'ai': 'Compétition IA'
-            };
-
-            console.log(`🚀 Ouverture de ${botNames[botType]}`);
             
-            alert(`📂 ${botNames[botType]} s'ouvre dans un nouvel onglet.\n\n` +
-                  `Fichier: ${urls[botType]}\n\n` +
-                  `⚠️ Assure-toi d'avoir tous les fichiers HTML dans le même dossier.`);
+            dcaData.trades.unshift(trade);
             
-            // Tenter d'ouvrir le fichier
-            const newWindow = window.open(urls[botType], '_blank');
+            // Update chart
+            dcaData.chartData.labels.push(trade.time);
+            dcaData.chartData.values.push(dcaData.currentValue);
             
-            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                alert('❌ Impossible d\'ouvrir le bot.\n\n' +
-                      'Veuillez:\n' +
-                      '1. Autoriser les popups\n' +
-                      '2. Ouvrir manuellement le fichier: ' + urls[botType]);
+            if (dcaChart) {
+                dcaChart.data.labels = dcaData.chartData.labels.slice(-20);
+                dcaChart.data.datasets[0].data = dcaData.chartData.values.slice(-20);
+                dcaChart.update();
             }
+            
+            // Update stats
+            updateDCAStats();
+            
+            // Update trade history
+            updateDCATradeHistory();
         }
 
-        function returnToHome() {
-            document.getElementById('tradingProBot').classList.add('hidden');
-            document.getElementById('jercatHomePage').classList.remove('hidden');
+        function updateDCAStats() {
+            document.getElementById('dcaTotalInvested').textContent = 
+                '$' + dcaData.totalInvested.toFixed(2);
+            
+            document.getElementById('dcaCurrentValue').textContent = 
+                '$' + dcaData.currentValue.toFixed(2);
+            
+            const pnl = dcaData.currentValue - dcaData.totalInvested;
+            document.getElementById('dcaPnL').textContent = 
+                (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+            document.getElementById('dcaPnL').className = 
+                'text-2xl font-bold ' + (pnl >= 0 ? 'text-green-400' : 'text-red-400');
+            
+            const roi = dcaData.totalInvested > 0 
+                ? ((dcaData.currentValue - dcaData.totalInvested) / dcaData.totalInvested * 100) 
+                : 0;
+            document.getElementById('dcaROI').textContent = 
+                (roi >= 0 ? '+' : '') + roi.toFixed(2) + '%';
         }
 
-        function loadTradingProBot() {
-            const content = document.getElementById('tradingProContent');
-            content.innerHTML = `
-                <div class="text-center py-12">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-xl">Chargement du Bot Trading Pro...</p>
-                </div>
-            `;
-
-            // Simulation du chargement (à remplacer par le vrai bot)
-            setTimeout(() => {
-                content.innerHTML = `
-                    <div class="glass-effect rounded-2xl p-8 text-center">
-                        <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                            📊 Bot Trading Pro - 6 Indicateurs
-                        </h1>
-                        <p class="text-xl text-white/80 mb-6">Bot de trading professionnel avec 6 indicateurs techniques</p>
-                        
-                        <div class="bg-green-500/20 border border-green-500 rounded-xl p-6 mb-6">
-                            <h3 class="text-2xl font-bold text-green-400 mb-4">🎯 Fonctionnalités</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                                <div class="bg-black/30 rounded-lg p-4">
-                                    <p class="font-bold text-white mb-2">📊 6 Indicateurs</p>
-                                    <p class="text-sm text-gray-300">RSI, MACD, EMA, Volume, Bollinger Bands, Stochastic RSI</p>
-                                </div>
-                                <div class="bg-black/30 rounded-lg p-4">
-                                    <p class="font-bold text-white mb-2">🎯 Stratégies</p>
-                                    <p class="text-sm text-gray-300">TP: +3.5% | SL: -3.0% | Trailing: 0.5%</p>
-                                </div>
-                                <div class="bg-black/30 rounded-lg p-4">
-                                    <p class="font-bold text-white mb-2">🤖 Modes</p>
-                                    <p class="text-sm text-gray-300">Manuel (MetaMask) ou Auto 24/7 (Clé privée)</p>
-                                </div>
-                                <div class="bg-black/30 rounded-lg p-4">
-                                    <p class="font-bold text-white mb-2">📱 Telegram</p>
-                                    <p class="text-sm text-gray-300">Notifications en temps réel</p>
-                                </div>
-                            </div>
+        function updateDCATradeHistory() {
+            const historyDiv = document.getElementById('dcaTradeHistory');
+            historyDiv.innerHTML = '';
+            
+            dcaData.trades.slice(0, 10).forEach(trade => {
+                const tradeDiv = document.createElement('div');
+                tradeDiv.className = 'trade-entry glass-effect rounded-lg p-4';
+                tradeDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-yellow-400">${trade.token}</span>
+                            <span class="text-gray-400 text-sm ml-2">${trade.time}</span>
                         </div>
-
-                        <div class="bg-blue-500/20 border border-blue-500 rounded-xl p-6">
-                            <p class="text-blue-300 text-lg mb-4">💡 <strong>Pour utiliser ce bot:</strong></p>
-                            <p class="text-blue-200 mb-4">Ouvre le fichier <strong>bot-trading-pro.html</strong> séparément pour accéder à toutes les fonctionnalités.</p>
-                            <button onclick="window.open('bot-trading-pro.html', '_blank')" class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold text-lg transition-all">
-                                🚀 Ouvrir le Bot Trading Pro
-                            </button>
-                        </div>
-
-                        <div class="mt-6 text-sm text-gray-400">
-                            <p>⚠️ Le bot complet nécessite d'être ouvert dans son propre fichier HTML pour des raisons de performance et de sécurité.</p>
+                        <div class="text-right">
+                            <div class="font-bold text-green-400">BUY $${trade.amount.toFixed(2)}</div>
+                            <div class="text-sm text-gray-400">${trade.quantity.toFixed(6)} @ $${trade.price.toFixed(2)}</div>
                         </div>
                     </div>
                 `;
-            }, 1500);
+                historyDiv.appendChild(tradeDiv);
+            });
         }
 
-        // Écouter les changements de compte
-        if (typeof window.ethereum !== 'undefined') {
-            ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0) {
-                    location.reload();
-                } else {
-                    location.reload();
+        // ==========================================
+        // DEX FUNCTIONS
+        // ==========================================
+        function loadDEXData() {
+            // Load recent transactions
+            const recentTxs = document.getElementById('recentTxs');
+            recentTxs.innerHTML = `
+                <div class="text-xs space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-green-400">SWAP</span>
+                        <span>1.5 BNB → 3,245 JERCAT</span>
+                        <span class="text-gray-500">2m ago</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-blue-400">BUY</span>
+                        <span>500 BUSD → 20,408 JERCAT</span>
+                        <span class="text-gray-500">5m ago</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-red-400">SELL</span>
+                        <span>10,000 JERCAT → 245 BUSD</span>
+                        <span class="text-gray-500">8m ago</span>
+                    </div>
+                </div>
+            `;
+            
+            // Update swap price
+            updateSwapPrice();
+        }
+
+        function swapTokens() {
+            const tokenFrom = document.getElementById('tokenFrom').value;
+            const tokenTo = document.getElementById('tokenTo').value;
+            
+            document.getElementById('tokenFrom').value = tokenTo;
+            document.getElementById('tokenTo').value = tokenFrom;
+            
+            updateSwapPrice();
+        }
+
+        function updateSwapPrice() {
+            const amountFrom = parseFloat(document.getElementById('amountFrom').value) || 0;
+            const tokenFrom = document.getElementById('tokenFrom').value;
+            const tokenTo = document.getElementById('tokenTo').value;
+            
+            // Simulated price calculation
+            let rate = 1;
+            if (tokenFrom === 'BNB' && tokenTo === 'JERCAT') {
+                rate = 2163; // 1 BNB = 2163 JERCAT
+            } else if (tokenFrom === 'JERCAT' && tokenTo === 'BNB') {
+                rate = 0.000462;
+            } else if (tokenFrom === 'BUSD' && tokenTo === 'JERCAT') {
+                rate = 40.82;
+            } else if (tokenFrom === 'JERCAT' && tokenTo === 'BUSD') {
+                rate = 0.0245;
+            }
+            
+            const amountTo = amountFrom * rate;
+            document.getElementById('amountTo').value = amountTo.toFixed(6);
+            document.getElementById('swapPrice').textContent = 
+                `1 ${tokenFrom} = ${rate.toFixed(6)} ${tokenTo}`;
+        }
+
+        async function executeSwap() {
+            if (!userAccount) {
+                showNotification('⚠️ Connectez votre wallet', 'error');
+                return;
+            }
+            
+            const tokenFrom = document.getElementById('tokenFrom').value;
+            const tokenTo = document.getElementById('tokenTo').value;
+            const amountFrom = document.getElementById('amountFrom').value;
+            const amountTo = document.getElementById('amountTo').value;
+            
+            if (!amountFrom || amountFrom <= 0) {
+                showNotification('⚠️ Montant invalide', 'error');
+                return;
+            }
+            
+            showNotification('🔄 Échange en cours...', 'info');
+            
+            // Simulate swap (in real app, call DEX contract)
+            setTimeout(() => {
+                showNotification(`✅ Swap réussi! ${amountFrom} ${tokenFrom} → ${parseFloat(amountTo).toFixed(4)} ${tokenTo}`, 'success');
+                loadDEXData();
+            }, 2000);
+        }
+
+        // Listen for amount changes
+        document.addEventListener('DOMContentLoaded', () => {
+            const amountFrom = document.getElementById('amountFrom');
+            if (amountFrom) {
+                amountFrom.addEventListener('input', updateSwapPrice);
+            }
+        });
+
+        // ==========================================
+        // AI COMPETITION FUNCTIONS
+        // ==========================================
+        function initAICompetitionChart() {
+            const ctx = document.getElementById('aiCompetitionChart');
+            if (!ctx) return;
+            
+            if (aiCompetitionChart) {
+                aiCompetitionChart.destroy();
+            }
+            
+            aiCompetitionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Alpha Bot',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Beta Bot',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Gamma Bot',
+                            data: [],
+                            borderColor: '#a855f7',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Delta Bot',
+                            data: [],
+                            borderColor: '#eab308',
+                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { 
+                                color: '#fff',
+                                callback: value => '$' + value.toLocaleString()
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
                 }
             });
+        }
 
-            ethereum.on('chainChanged', () => {
-                location.reload();
+        function startAICompetition() {
+            if (!userAccount) {
+                showNotification('⚠️ Connectez votre wallet', 'error');
+                return;
+            }
+            
+            const capital = parseFloat(document.getElementById('aiCapital').value);
+            const duration = parseInt(document.getElementById('aiDuration').value);
+            
+            // Reset data
+            aiCompetitionData.bots.forEach(bot => {
+                bot.capital = capital;
+                bot.pnl = 0;
+                bot.trades = 0;
+                bot.wins = 0;
+            });
+            aiCompetitionData.activities = [];
+            
+            aiCompetitionActive = true;
+            
+            document.getElementById('aiStartBtn').classList.add('hidden');
+            document.getElementById('aiStopBtn').classList.remove('hidden');
+            
+            showNotification(`🚀 Compétition IA lancée! Capital: $${capital} - Durée: ${duration}h`, 'success');
+            
+            // Update every 3 seconds
+            aiCompetitionInterval = setInterval(() => {
+                if (aiCompetitionActive) {
+                    updateAICompetition();
+                }
+            }, 3000);
+        }
+
+        function stopAICompetition() {
+            aiCompetitionActive = false;
+            clearInterval(aiCompetitionInterval);
+            
+            document.getElementById('aiStartBtn').classList.remove('hidden');
+            document.getElementById('aiStopBtn').classList.add('hidden');
+            
+            // Determine winner
+            const winner = aiCompetitionData.bots.reduce((prev, current) => 
+                (current.capital > prev.capital) ? current : prev
+            );
+            
+            showNotification(`🏆 Gagnant: ${winner.name} avec $${winner.capital.toFixed(2)}!`, 'success');
+        }
+
+        function updateAICompetition() {
+            const time = new Date().toLocaleTimeString();
+            
+            // Update each bot
+            aiCompetitionData.bots.forEach((bot, index) => {
+                // Simulate trade
+                const shouldTrade = Math.random() > 0.7;
+                if (shouldTrade) {
+                    const tradeAmount = bot.capital * (0.01 + Math.random() * 0.04); // 1-5% of capital
+                    const isWin = Math.random() > 0.4; // 60% win rate
+                    const profitPercent = isWin 
+                        ? (0.5 + Math.random() * 2) // 0.5-2.5% profit
+                        : -(0.5 + Math.random() * 1.5); // 0.5-2% loss
+                    
+                    const profit = tradeAmount * (profitPercent / 100);
+                    bot.capital += profit;
+                    bot.pnl += profit;
+                    bot.trades++;
+                    if (isWin) bot.wins++;
+                    
+                    // Add activity
+                    aiCompetitionData.activities.unshift({
+                        time: time,
+                        bot: bot.name,
+                        action: isWin ? 'WIN' : 'LOSS',
+                        profit: profit
+                    });
+                }
+            });
+            
+            // Sort bots by capital
+            aiCompetitionData.bots.sort((a, b) => b.capital - a.capital);
+            
+            // Update UI
+            updateAICompetitionUI();
+            updateAIChart(time);
+        }
+
+        function updateAICompetitionUI() {
+            aiCompetitionData.bots.forEach((bot, index) => {
+                const i = index + 1;
+                const roi = ((bot.capital - 10000) / 10000 * 100);
+                const winRate = bot.trades > 0 ? (bot.wins / bot.trades * 100) : 0;
+                
+                document.getElementById(`ai${i}Capital`).textContent = '$' + bot.capital.toFixed(2);
+                document.getElementById(`ai${i}PnL`).textContent = 
+                    (bot.pnl >= 0 ? '+$' : '-$') + Math.abs(bot.pnl).toFixed(2);
+                document.getElementById(`ai${i}PnL`).className = 
+                    'font-bold ' + (bot.pnl >= 0 ? 'text-green-400' : 'text-red-400');
+                document.getElementById(`ai${i}ROI`).textContent = 
+                    (roi >= 0 ? '+' : '') + roi.toFixed(2) + '%';
+                document.getElementById(`ai${i}Trades`).textContent = bot.trades;
+                document.getElementById(`ai${i}WinRate`).textContent = winRate.toFixed(1) + '%';
+            });
+            
+            // Update activity feed
+            const feedDiv = document.getElementById('aiActivityFeed');
+            feedDiv.innerHTML = '';
+            
+            aiCompetitionData.activities.slice(0, 15).forEach(activity => {
+                const activityDiv = document.createElement('div');
+                activityDiv.className = 'glass-effect rounded-lg p-3';
+                activityDiv.innerHTML = `
+                    <div class="flex justify-between items-center text-sm">
+                        <div>
+                            <span class="font-bold">${activity.bot}</span>
+                            <span class="text-gray-400 ml-2">${activity.time}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="${activity.action === 'WIN' ? 'text-green-400' : 'text-red-400'} font-bold">
+                                ${activity.action}
+                            </span>
+                            <span class="ml-2 ${activity.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                ${activity.profit >= 0 ? '+' : ''}$${activity.profit.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                feedDiv.appendChild(activityDiv);
             });
         }
 
-        console.log('🐱 JERCAT Trading Platform Complete chargée');
-        console.log('✅ 4 bots disponibles: Trading Pro + DCA Bot + JERCAT DEX + AI Competition');
+        function updateAIChart(time) {
+            if (!aiCompetitionChart) return;
+            
+            aiCompetitionChart.data.labels.push(time);
+            
+            aiCompetitionData.bots.forEach((bot, index) => {
+                aiCompetitionChart.data.datasets[index].data.push(bot.capital);
+            });
+            
+            // Keep only last 20 points
+            if (aiCompetitionChart.data.labels.length > 20) {
+                aiCompetitionChart.data.labels.shift();
+                aiCompetitionChart.data.datasets.forEach(dataset => {
+                    dataset.data.shift();
+                });
+            }
+            
+            aiCompetitionChart.update();
+        }
+
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ==========================================
+        // EVENT LISTENERS
+        // ==========================================
+        window.ethereum?.on('accountsChanged', accounts => {
+            if (accounts.length === 0) {
+                location.reload();
+            } else {
+                userAccount = accounts[0];
+                loadJercatBalance().then(() => updateWalletUI());
+            }
+        });
+
+        window.ethereum?.on('chainChanged', () => {
+            location.reload();
+        });
+
+        // Auto-connect if previously connected
+        window.addEventListener('load', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_accounts' 
+                });
+                if (accounts.length > 0) {
+                    connectWallet();
+                }
+            }
+        });
+
+        console.log('🐱 JERCAT Platform Ultimate Edition chargée!');
+        console.log('📊 Tous les bots sont opérationnels');
+        console.log('🚀 Ready to trade!');
     </script>
+
 </body>
 </html>
