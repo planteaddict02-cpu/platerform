@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JERCAT Trading Platform - Multi-Bot AI Competition</title>
+    <title>JERCAT Trading Platform - Complete Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -28,7 +27,12 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .animate-spin {
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #FFD700;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
         }
 
@@ -39,15 +43,6 @@
 
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid #FFD700;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
         }
 
         .hidden { display: none !important; }
@@ -61,90 +56,37 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        /* Styles pour le bot compétition IA */
-        .ai-card {
-            background: white;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            color: #1f2937;
-        }
-        .ai-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .ai-card.active {
-            border: 3px solid #10b981;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
-        }
-        .trade-log {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .trade-log::-webkit-scrollbar {
-            width: 8px;
-        }
-        .trade-log::-webkit-scrollbar-track {
-            background: #f3f4f6;
-            border-radius: 10px;
-        }
-        .trade-log::-webkit-scrollbar-thumb {
-            background: #10b981;
-            border-radius: 10px;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .pulse {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
-        }
-        .gradient-border {
-            position: relative;
-            background: white;
-            border: 2px solid #e5e7eb;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            color: #1f2937;
-        }
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        .status-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
-        .status-offline { background: #ef4444; }
-        .status-trading { background: #f59e0b; animation: pulse 1s infinite; }
-
-        /* Tiers */
         .tier-bronze { background: #CD7F32; color: white; }
         .tier-silver { background: #C0C0C0; color: black; }
         .tier-gold { background: #FFD700; color: black; }
         .tier-diamond { background: linear-gradient(45deg, #00D4FF, #0099CC); color: white; }
         .tier-none { background: rgba(255, 0, 0, 0.3); color: white; }
+
+        .bot-card {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .bot-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+        }
     </style>
 </head>
 <body>
-    <!-- SECTION 1: PAGE D'ACCUEIL JERCAT -->
+    <!-- ============================================ -->
+    <!-- PAGE D'ACCUEIL JERCAT -->
+    <!-- ============================================ -->
     <div id="jercatHomePage" class="min-h-screen gradient-bg p-4 md:p-6">
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-12 pt-8">
                 <h1 class="text-5xl md:text-6xl font-bold mb-4">
                     <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                        🐱 JERCAT BOT PLATFORM
+                        🐱 JERCAT TRADING PLATFORM
                     </span>
                 </h1>
-                <p class="text-xl text-white/90">Bots de trading professionnels réservés aux holders</p>
-                <p class="text-sm text-white/70 mt-2">Bot Basique • Compétition IA • Trading Réel 24/7</p>
+                <p class="text-xl text-white/90">Plateforme de trading professionnelle réservée aux holders</p>
+                <p class="text-sm text-white/70 mt-2">4 Bots Disponibles • Trading Réel 24/7 • PancakeSwap & Binance</p>
             </div>
 
             <!-- Connexion Card -->
@@ -212,42 +154,84 @@
             <div id="botsSection" class="hidden max-w-6xl mx-auto">
                 <h2 class="text-4xl font-bold text-center mb-8">🤖 Bots de Trading Disponibles</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                    <!-- Bot Trading Basique -->
-                    <div class="glass-effect rounded-xl p-6 hover:border-yellow-400 border-2 border-transparent transition-all" data-min-balance="100">
-                        <div class="text-6xl mb-4 text-center">📈</div>
-                        <h3 class="text-2xl font-bold text-yellow-400 mb-3 text-center">Bot Trading Pro</h3>
-                        <p class="text-white/80 mb-4">Trading avec 6 indicateurs techniques (RSI, MACD, EMA, Volume, Bollinger, Stoch RSI)</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <!-- Bot Trading Pro (6 Indicateurs) -->
+                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-green-400 border-2 border-transparent transition-all">
+                        <div class="text-6xl mb-4 text-center">📊</div>
+                        <h3 class="text-2xl font-bold text-green-400 mb-3 text-center">Trading Pro</h3>
+                        <p class="text-white/80 mb-4 text-sm">Bot avec 6 indicateurs techniques (RSI, MACD, EMA, Volume, Bollinger, Stoch RSI)</p>
                         <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
                         <div class="text-xs text-white/60 mb-4">
+                            • 6 indicateurs (3 requis)<br>
                             • Take Profit: +3.5%<br>
                             • Stop Loss: -3.0%<br>
                             • Trailing Stop: 0.5%<br>
-                            • Trading Réel PancakeSwap<br>
                             • Notifications Telegram
                         </div>
-                        <button onclick="launchTradingBot('basic')" class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold transition-all">
-                            🚀 Lancer le Bot Pro
+                        <button onclick="launchBot('trading-pro')" class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold transition-all">
+                            🚀 Lancer Trading Pro
+                        </button>
+                    </div>
+
+                    <!-- Bot DCA Trading -->
+                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-blue-400 border-2 border-transparent transition-all">
+                        <div class="text-6xl mb-4 text-center">🔄</div>
+                        <h3 class="text-2xl font-bold text-blue-400 mb-3 text-center">DCA Bot</h3>
+                        <p class="text-white/80 mb-4 text-sm">Bot DCA automatique avec Top 20 cryptos + Swap Top 50 tokens.</p>
+                        <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
+                        <div class="text-xs text-white/60 mb-4">
+                            • DCA automatique<br>
+                            • Swap multi-tokens<br>
+                            • Mode Manuel/Auto 24/7<br>
+                            • PancakeSwap DEX<br>
+                            • Historique complet
+                        </div>
+                        <button onclick="openExternalBot('dca')" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-lg font-bold transition-all">
+                            🚀 Ouvrir DCA Bot
+                        </button>
+                    </div>
+
+                    <!-- Bot JERCAT DEX -->
+                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-yellow-400 border-2 border-transparent transition-all">
+                        <div class="text-6xl mb-4 text-center">💎</div>
+                        <h3 class="text-2xl font-bold text-yellow-400 mb-3 text-center">JERCAT DEX</h3>
+                        <p class="text-white/80 mb-4 text-sm">DEX complet avec Swap, Wallet, Portfolio, Staking et Rewards!</p>
+                        <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
+                        <div class="text-xs text-white/60 mb-4">
+                            • Swap optimisé<br>
+                            • Wallet multi-tokens<br>
+                            • Portfolio tracking<br>
+                            • Rewards 1 JERCAT/swap<br>
+                            • Multi-chain (bientôt)
+                        </div>
+                        <button onclick="openExternalBot('dex')" class="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-lg font-bold transition-all">
+                            🚀 Ouvrir JERCAT DEX
                         </button>
                     </div>
 
                     <!-- Bot Compétition IA -->
-                    <div class="glass-effect rounded-xl p-6 hover:border-purple-400 border-2 border-transparent transition-all" data-min-balance="100">
+                    <div class="bot-card glass-effect rounded-xl p-6 hover:border-purple-400 border-2 border-transparent transition-all">
                         <div class="text-6xl mb-4 text-center">🤖</div>
                         <h3 class="text-2xl font-bold text-purple-400 mb-3 text-center">Compétition IA</h3>
-                        <p class="text-white/80 mb-4">4 IA en compétition: Claude vs Gemini vs ChatGPT vs Grok. Chaque IA trade de façon indépendante!</p>
+                        <p class="text-white/80 mb-4 text-sm">4 IA en compétition: Claude vs Gemini vs ChatGPT vs Grok!</p>
                         <div class="text-sm text-green-400 mb-4">✅ Minimum: 100 JERCAT</div>
                         <div class="text-xs text-white/60 mb-4">
-                            • Analyse sentiment news/social<br>
                             • 4 IA simultanées<br>
-                            • Trading Réel PancakeSwap<br>
-                            • Classement en direct<br>
+                            • Analyse sentiment<br>
+                            • Trading Réel Binance<br>
+                            • Classement live<br>
                             • Système anti-veille
                         </div>
-                        <button onclick="launchAICompetition()" class="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-lg font-bold transition-all">
-                            🎯 Lancer la Compétition
+                        <button onclick="openExternalBot('ai')" class="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-lg font-bold transition-all">
+                            🎯 Ouvrir Compétition
                         </button>
                     </div>
+                </div>
+
+                <div class="text-center bg-blue-500/20 border border-blue-500 rounded-xl p-6">
+                    <p class="text-blue-300 text-lg">💡 <strong>Info importante:</strong></p>
+                    <p class="text-blue-200 mt-2">Les bots DCA, DEX et AI Competition s'ouvrent dans des fichiers séparés pour une meilleure performance.</p>
+                    <p class="text-blue-200">Le Bot Trading Pro est intégré directement dans cette plateforme.</p>
                 </div>
             </div>
 
@@ -259,341 +243,19 @@
         </div>
     </div>
 
-    <!-- SECTION 2: BOT TRADING BASIQUE (caché par défaut) -->
-    <div id="basicTradingBot" class="hidden min-h-screen p-4 md:p-6">
-        <!-- Contenu du bot basique ici - simplifié pour l'exemple -->
-        <div class="max-w-7xl mx-auto">
+    <!-- ============================================ -->
+    <!-- BOT TRADING PRO (INTÉGRÉ) -->
+    <!-- ============================================ -->
+    <div id="tradingProBot" class="hidden min-h-screen" style="background: #000000;">
+        <!-- Le bot sera chargé dynamiquement ici -->
+        <div class="max-w-7xl mx-auto p-4">
             <div class="mb-4">
-                <button onclick="returnToJercatPlatform()" class="flex items-center gap-2 px-4 py-2 glass-effect hover:bg-slate-700 rounded-lg transition-all text-white">
+                <button onclick="returnToHome()" class="flex items-center gap-2 px-4 py-2 glass-effect hover:bg-slate-700 rounded-lg transition-all text-white">
                     <span>←</span>
                     <span>Retour à la plateforme JERCAT</span>
                 </button>
             </div>
-            <h1 class="text-4xl font-bold text-center text-white mb-8">📈 Bot Trading Pro - 6 Indicateurs</h1>
-            <div class="glass-effect rounded-xl p-6 text-white">
-                <p class="text-center text-xl">Bot Trading Basique avec 6 indicateurs techniques</p>
-                <p class="text-center text-gray-400 mt-4">Configuration complète disponible dans la version finale</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- SECTION 3: BOT COMPÉTITION IA (caché par défaut) -->
-    <div id="aiCompetitionBot" class="hidden">
-        <!-- Contenu complet du bot compétition IA -->
-        <div class="min-h-screen p-4 md:p-6" style="background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 50%, #e5e7eb 100%);">
-            <div class="max-w-7xl mx-auto">
-                <!-- Bouton retour -->
-                <div class="mb-4">
-                    <button onclick="returnToJercatPlatform()" class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 rounded-lg transition-all text-gray-800 border-2 border-gray-300">
-                        <span>←</span>
-                        <span>Retour à la plateforme JERCAT</span>
-                    </button>
-                </div>
-
-                <!-- Header -->
-                <div class="text-center mb-8">
-                    <h1 class="text-4xl md:text-5xl font-bold mb-3" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                        🤖 AI Trading Bot Competition
-                    </h1>
-                    <p class="text-gray-600 text-lg">Claude vs Gemini vs ChatGPT vs Grok • Trading Réel 24/7 via PancakeSwap</p>
-                    <div class="mt-3 flex justify-center gap-4 items-center">
-                        <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold text-sm">🥞 PancakeSwap</span>
-                        <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-full font-semibold text-sm">🔗 BSC Network</span>
-                    </div>
-                </div>
-
-                <!-- Configuration -->
-                <div class="gradient-border rounded-xl p-6 mb-6">
-                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-800">
-                        <span>🔐</span>
-                        Configuration Bot IA
-                    </h2>
-
-                    <!-- Info Wallet JERCAT -->
-                    <div class="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-purple-800 font-bold">👛 Wallet JERCAT Connecté</p>
-                                <p class="text-sm text-purple-600" id="aiWalletDisplay">-</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs text-purple-600">Balance JERCAT</p>
-                                <p class="text-2xl font-bold text-purple-800" id="aiJercatBalance">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm text-gray-700 mb-2 font-semibold">Mode de connexion</label>
-                            <select id="aiConnectionMode" onchange="switchAIConnectionMode()" class="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500">
-                                <option value="metamask">🦊 MetaMask (Manuel)</option>
-                                <option value="privatekey">⚡ Clé Privée (Auto 24/7)</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm text-gray-700 mb-2 font-semibold">Statut</label>
-                            <div class="bg-white border-2 border-gray-300 rounded-lg px-4 py-3">
-                                <span id="aiConnectionStatus" class="flex items-center">
-                                    <span class="status-dot status-online"></span>
-                                    Connecté via JERCAT
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="aiPrivatekeySection" style="display: none;">
-                        <div class="bg-red-50 border-2 border-red-400 rounded-lg p-4 mb-4">
-                            <p class="text-red-700 font-bold mb-2">⚠️ MODE AUTOMATIQUE 24/7</p>
-                            <ul class="text-sm text-red-600 space-y-1">
-                                <li>• Utilisez un wallet DÉDIÉ avec petit capital</li>
-                                <li>• La clé est stockée en mémoire uniquement</li>
-                                <li>• Effacée automatiquement à la fermeture</li>
-                                <li>• Le bot traderra sans votre confirmation</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="block text-sm text-gray-700 mb-2 font-semibold">Clé Privée (0x...)</label>
-                            <input type="password" id="aiPrivateKeyInput" placeholder="0x..." class="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-500 font-mono">
-                        </div>
-                        
-                        <div class="flex gap-3">
-                            <button onclick="connectAIWithPrivateKey()" class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-lg font-bold transition-all shadow-lg">
-                                ⚡ Activer Mode Auto
-                            </button>
-                            <button onclick="toggleAIPrivateKeyVisibility()" class="px-4 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-all">
-                                👁️
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="aiWalletInfo" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                        <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-3">
-                            <p class="text-xs text-gray-600 font-semibold">Adresse</p>
-                            <p class="font-mono text-sm text-gray-800" id="aiWalletAddress">-</p>
-                        </div>
-                        <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
-                            <p class="text-xs text-gray-600 font-semibold">BNB</p>
-                            <p class="font-bold text-yellow-600" id="aiBnbBalance">0</p>
-                        </div>
-                        <div class="bg-green-50 border-2 border-green-200 rounded-lg p-3">
-                            <p class="text-xs text-gray-600 font-semibold">USDT</p>
-                            <p class="font-bold text-green-600" id="aiUsdtBalance">0</p>
-                        </div>
-                        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
-                            <p class="text-xs text-gray-600 font-semibold">Réseau</p>
-                            <p class="font-bold text-blue-600">BSC</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="block text-sm text-gray-700 mb-2 font-semibold">Capital de trading (USDT)</label>
-                        <div class="flex gap-3">
-                            <input type="number" id="aiTradingCapital" placeholder="100" value="100" class="flex-1 bg-white border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500">
-                            <button onclick="setAICapital()" class="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white rounded-lg font-bold transition-all shadow-lg">
-                                Valider
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="block text-sm text-gray-700 mb-2 font-semibold">Slippage tolérance (%)</label>
-                        <div class="flex gap-3">
-                            <input type="number" id="aiSlippageInput" value="2" min="0.5" max="10" step="0.5" class="flex-1 bg-white border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-yellow-500">
-                            <button onclick="updateAISlippage()" class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-bold transition-all shadow-lg">
-                                Appliquer
-                            </button>
-                        </div>
-                        <p class="text-xs text-gray-600 mt-2">⚠️ Recommandé: 2-5% pour tokens volatils</p>
-                    </div>
-                </div>
-
-                <!-- Sélection des IA -->
-                <div class="gradient-border rounded-xl p-6 mb-6">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">🤖 Sélectionner les IA Concurrentes</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- Claude AI -->
-                        <div class="ai-card rounded-xl p-5 cursor-pointer" onclick="toggleAISelection('claude')" id="ai-card-claude">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-3xl">🧠</span>
-                                    <h3 class="text-xl font-bold text-gray-800">Claude</h3>
-                                </div>
-                                <input type="checkbox" id="ai-check-claude" class="w-5 h-5">
-                            </div>
-                            <p class="text-sm text-gray-600 mb-3">Anthropic • Analyse profonde</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Trades:</span>
-                                    <span id="ai-claude-trades" class="font-bold text-green-600">0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Profit:</span>
-                                    <span id="ai-claude-profit" class="font-bold text-green-600">$0.00</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Win Rate:</span>
-                                    <span id="ai-claude-winrate" class="font-bold text-gray-800">0%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Gemini AI -->
-                        <div class="ai-card rounded-xl p-5 cursor-pointer" onclick="toggleAISelection('gemini')" id="ai-card-gemini">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-3xl">💎</span>
-                                    <h3 class="text-xl font-bold text-gray-800">Gemini</h3>
-                                </div>
-                                <input type="checkbox" id="ai-check-gemini" class="w-5 h-5">
-                            </div>
-                            <p class="text-sm text-gray-600 mb-3">Google • Analyse multimodale</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Trades:</span>
-                                    <span id="ai-gemini-trades" class="font-bold text-blue-600">0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Profit:</span>
-                                    <span id="ai-gemini-profit" class="font-bold text-blue-600">$0.00</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Win Rate:</span>
-                                    <span id="ai-gemini-winrate" class="font-bold text-gray-800">0%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ChatGPT AI -->
-                        <div class="ai-card rounded-xl p-5 cursor-pointer" onclick="toggleAISelection('chatgpt')" id="ai-card-chatgpt">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-3xl">🚀</span>
-                                    <h3 class="text-xl font-bold text-gray-800">ChatGPT</h3>
-                                </div>
-                                <input type="checkbox" id="ai-check-chatgpt" class="w-5 h-5">
-                            </div>
-                            <p class="text-sm text-gray-600 mb-3">OpenAI • Décisions optimales</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Trades:</span>
-                                    <span id="ai-chatgpt-trades" class="font-bold text-purple-600">0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Profit:</span>
-                                    <span id="ai-chatgpt-profit" class="font-bold text-purple-600">$0.00</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Win Rate:</span>
-                                    <span id="ai-chatgpt-winrate" class="font-bold text-gray-800">0%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Grok AI -->
-                        <div class="ai-card rounded-xl p-5 cursor-pointer" onclick="toggleAISelection('grok')" id="ai-card-grok">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-3xl">⚡</span>
-                                    <h3 class="text-xl font-bold text-gray-800">Grok</h3>
-                                </div>
-                                <input type="checkbox" id="ai-check-grok" class="w-5 h-5">
-                            </div>
-                            <p class="text-sm text-gray-600 mb-3">xAI • Trading agressif</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Trades:</span>
-                                    <span id="ai-grok-trades" class="font-bold text-orange-600">0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Profit:</span>
-                                    <span id="ai-grok-profit" class="font-bold text-orange-600">$0.00</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Win Rate:</span>
-                                    <span id="ai-grok-winrate" class="font-bold text-gray-800">0%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 flex flex-wrap gap-4">
-                        <button onclick="startAICompetition()" id="aiStartBtn" class="flex-1 min-w-[200px] px-6 py-4 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white rounded-lg font-bold text-lg transition-all shadow-lg">
-                            🚀 Démarrer la Compétition
-                        </button>
-                        <button onclick="stopAICompetition()" id="aiStopBtn" class="flex-1 min-w-[200px] px-6 py-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white rounded-lg font-bold text-lg transition-all shadow-lg" style="display: none;">
-                            ⏸️ Arrêter
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Graphique Prix Réel -->
-                    <div class="lg:col-span-2 gradient-border rounded-xl p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-2xl font-bold text-gray-800">📈 Prix Temps Réel</h2>
-                            <div class="flex items-center gap-3">
-                                <select id="aiCryptoSelect" onchange="changeAICrypto()" class="bg-white border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                                    <option value="BTCUSDT">BTC/USDT</option>
-                                    <option value="ETHUSDT">ETH/USDT</option>
-                                    <option value="BNBUSDT">BNB/USDT</option>
-                                </select>
-                                <div class="text-2xl font-bold text-gray-800" id="aiCurrentPrice">$0</div>
-                            </div>
-                        </div>
-                        <div class="h-80">
-                            <canvas id="aiPriceChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Classement en direct -->
-                    <div class="gradient-border rounded-xl p-6">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">🏆 Classement</h2>
-                        <div id="aiLeaderboard" class="space-y-3">
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                <p class="text-center text-gray-600">Démarrez la compétition</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Logs des Trades -->
-                <div class="gradient-border rounded-xl p-6 mt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-gray-800">📊 Journal des Trades</h2>
-                        <button onclick="clearAILogs()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg text-sm transition-all">
-                            🗑️ Effacer
-                        </button>
-                    </div>
-                    <div id="aiTradeLogs" class="trade-log space-y-2">
-                        <div class="text-center text-gray-500 py-8">
-                            Aucun trade pour le moment
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Système Anti-Veille -->
-                <div class="gradient-border rounded-xl p-6 mt-6">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">⚡ Système Anti-Veille</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-2 font-semibold">Wake Lock</p>
-                            <p id="aiWakeLockStatus" class="font-bold text-green-600">Actif</p>
-                        </div>
-                        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-2 font-semibold">Temps actif</p>
-                            <p id="aiUptime" class="font-bold text-blue-600">00:00:00</p>
-                        </div>
-                        <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-2 font-semibold">Connexion WS</p>
-                            <p id="aiWsStatus" class="font-bold text-purple-600">Connecté</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="tradingProContent"></div>
         </div>
     </div>
 
@@ -602,8 +264,6 @@
         // CONFIGURATION GLOBALE
         // ========================================
         const JERCAT_CONTRACT = "0x197CF8951d93325A9333857Ee5330daF7aC4bcCF";
-        const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-        const USDT_CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
         const BSC_RPC = 'https://bsc-dataseed1.binance.org';
         const BSC_CHAIN_ID = 56;
         
@@ -624,58 +284,19 @@
             }
         ];
 
-        const TOKEN_ADDRESSES = {
-            'BTCUSDT': '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
-            'ETHUSDT': '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
-            'BNBUSDT': '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'
-        };
-
         // État global JERCAT
         let jercatState = {
             account: null,
             isConnected: false,
             balanceBNB: '0',
             balanceJERCAT: 0,
-            balanceUSDT: '0',
             tier: 'none',
             accessGranted: false,
             provider: null
         };
 
-        // État bot IA
-        let aiState = {
-            connectionMode: 'metamask',
-            account: null,
-            provider: null,
-            privateKeyWallet: null,
-            isConnected: false,
-            balances: { bnb: 0, usdt: 0 },
-            capital: 0,
-            slippage: 2.0,
-            selectedCrypto: 'BTCUSDT',
-            currentPrice: 0,
-            priceHistory: [],
-            activeAIs: { claude: false, gemini: false, chatgpt: false, grok: false },
-            aiStats: {
-                claude: { trades: 0, profit: 0, wins: 0, losses: 0 },
-                gemini: { trades: 0, profit: 0, wins: 0, losses: 0 },
-                chatgpt: { trades: 0, profit: 0, wins: 0, losses: 0 },
-                grok: { trades: 0, profit: 0, wins: 0, losses: 0 }
-            },
-            positions: { claude: null, gemini: null, chatgpt: null, grok: null },
-            competitionRunning: false,
-            tradeLogs: [],
-            wakeLock: null,
-            startTime: null
-        };
-
-        let aiWs = null;
-        let aiPriceChart = null;
-        let aiCompetitionInterval = null;
-        let aiUptimeInterval = null;
-
         // ========================================
-        // CONNEXION WALLET & VÉRIFICATION JERCAT
+        // CONNEXION WALLET & VÉRIFICATION
         // ========================================
         async function connectWallet() {
             if (typeof window.ethereum === 'undefined') {
@@ -742,10 +363,6 @@
                 const balanceWei = await jercatContract.methods.balanceOf(jercatState.account).call();
                 jercatState.balanceJERCAT = parseFloat(balanceWei / (10 ** decimals));
 
-                const usdtContract = new web3Instance.eth.Contract(ERC20_ABI, USDT_CONTRACT);
-                const usdtBalanceWei = await usdtContract.methods.balanceOf(jercatState.account).call();
-                jercatState.balanceUSDT = parseFloat(web3Instance.utils.fromWei(usdtBalanceWei, 'ether')).toFixed(2);
-
                 document.getElementById('walletAddress').textContent = 
                     jercatState.account.substring(0, 6) + '...' + jercatState.account.substring(38);
                 document.getElementById('jercatBalance').textContent = jercatState.balanceJERCAT.toFixed(2);
@@ -807,449 +424,116 @@
         // ========================================
         // LANCEMENT DES BOTS
         // ========================================
-        function launchTradingBot(botType) {
+        function launchBot(botType) {
             if (!jercatState.accessGranted) {
                 alert('❌ Accès refusé. Achète des tokens JERCAT pour continuer.');
                 return;
             }
 
-            console.log(`🚀 Lancement du bot basique: ${botType}`);
-            document.getElementById('jercatHomePage').classList.add('hidden');
-            document.getElementById('basicTradingBot').classList.remove('hidden');
+            if (botType === 'trading-pro') {
+                console.log('🚀 Lancement du Bot Trading Pro (intégré)');
+                document.getElementById('jercatHomePage').classList.add('hidden');
+                document.getElementById('tradingProBot').classList.remove('hidden');
+                
+                // Charger le contenu du bot
+                loadTradingProBot();
+            }
         }
 
-        function launchAICompetition() {
+        function openExternalBot(botType) {
             if (!jercatState.accessGranted) {
                 alert('❌ Accès refusé. Achète des tokens JERCAT pour continuer.');
                 return;
             }
 
-            console.log('🤖 Lancement de la compétition IA');
-            document.getElementById('jercatHomePage').classList.add('hidden');
-            document.getElementById('aiCompetitionBot').classList.remove('hidden');
+            const urls = {
+                'dca': 'bot-dca-dual-mode.html',
+                'dex': 'jercat-dex-complete.html',
+                'ai': 'ai-competition-bot.html'
+            };
+
+            const botNames = {
+                'dca': 'DCA Bot',
+                'dex': 'JERCAT DEX',
+                'ai': 'Compétition IA'
+            };
+
+            console.log(`🚀 Ouverture de ${botNames[botType]}`);
             
-            initAICompetition();
+            alert(`📂 ${botNames[botType]} s'ouvre dans un nouvel onglet.\n\n` +
+                  `Fichier: ${urls[botType]}\n\n` +
+                  `⚠️ Assure-toi d'avoir tous les fichiers HTML dans le même dossier.`);
+            
+            // Tenter d'ouvrir le fichier
+            const newWindow = window.open(urls[botType], '_blank');
+            
+            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                alert('❌ Impossible d\'ouvrir le bot.\n\n' +
+                      'Veuillez:\n' +
+                      '1. Autoriser les popups\n' +
+                      '2. Ouvrir manuellement le fichier: ' + urls[botType]);
+            }
         }
 
-        function returnToJercatPlatform() {
-            if (aiState.competitionRunning) {
-                if (!confirm('⚠️ La compétition est en cours. Êtes-vous sûr de vouloir quitter ?')) {
-                    return;
-                }
-                stopAICompetition();
-            }
-            
-            document.getElementById('basicTradingBot').classList.add('hidden');
-            document.getElementById('aiCompetitionBot').classList.add('hidden');
+        function returnToHome() {
+            document.getElementById('tradingProBot').classList.add('hidden');
             document.getElementById('jercatHomePage').classList.remove('hidden');
         }
 
-        // ========================================
-        // INITIALISATION BOT IA
-        // ========================================
-        function initAICompetition() {
-            console.log('🤖 Initialisation du bot IA...');
-            
-            // Copier les infos du wallet JERCAT
-            aiState.account = jercatState.account;
-            aiState.provider = jercatState.provider;
-            aiState.isConnected = true;
-            aiState.balances.bnb = parseFloat(jercatState.balanceBNB);
-            aiState.balances.usdt = parseFloat(jercatState.balanceUSDT);
-            
-            // Afficher les infos
-            document.getElementById('aiWalletDisplay').textContent = 
-                aiState.account.slice(0, 6) + '...' + aiState.account.slice(-4);
-            document.getElementById('aiJercatBalance').textContent = jercatState.balanceJERCAT.toFixed(2);
-            document.getElementById('aiWalletAddress').textContent = 
-                aiState.account.slice(0, 6) + '...' + aiState.account.slice(-4);
-            document.getElementById('aiBnbBalance').textContent = aiState.balances.bnb.toFixed(4);
-            document.getElementById('aiUsdtBalance').textContent = aiState.balances.usdt.toFixed(2);
-            
-            initAIChart();
-            connectAIWebSocket();
-            startAIUptimeCounter();
-            requestAIWakeLock();
-            
-            console.log('✅ Bot IA prêt');
-        }
-
-        function initAIChart() {
-            const ctx = document.getElementById('aiPriceChart').getContext('2d');
-            aiPriceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Prix',
-                        data: [],
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { 
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                            ticks: { color: '#6b7280' }
-                        },
-                        y: { 
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                            ticks: { color: '#6b7280' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function connectAIWebSocket() {
-            if (aiWs) aiWs.close();
-            
-            const symbol = aiState.selectedCrypto.toLowerCase();
-            aiWs = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@ticker`);
-            
-            aiWs.onopen = () => {
-                console.log('✅ WebSocket AI connecté');
-                document.getElementById('aiWsStatus').textContent = 'Connecté';
-                document.getElementById('aiWsStatus').className = 'font-bold text-green-600';
-            };
-            
-            aiWs.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                aiState.currentPrice = parseFloat(data.c);
-                
-                aiState.priceHistory.push({
-                    time: new Date().toLocaleTimeString(),
-                    price: aiState.currentPrice
-                });
-                
-                if (aiState.priceHistory.length > 50) {
-                    aiState.priceHistory.shift();
-                }
-                
-                document.getElementById('aiCurrentPrice').textContent = '$' + aiState.currentPrice.toFixed(2);
-                
-                if (aiState.priceHistory.length % 5 === 0) {
-                    updateAIChart();
-                }
-            };
-            
-            aiWs.onerror = () => {
-                document.getElementById('aiWsStatus').textContent = 'Erreur';
-                document.getElementById('aiWsStatus').className = 'font-bold text-red-600';
-            };
-            
-            aiWs.onclose = () => {
-                console.log('🔌 WebSocket AI déconnecté');
-                document.getElementById('aiWsStatus').textContent = 'Déconnecté';
-                document.getElementById('aiWsStatus').className = 'font-bold text-yellow-600';
-                
-                setTimeout(() => {
-                    if (aiState.isConnected) {
-                        console.log('🔄 Reconnexion WebSocket AI...');
-                        connectAIWebSocket();
-                    }
-                }, 5000);
-            };
-        }
-
-        function updateAIChart() {
-            if (!aiPriceChart) return;
-            
-            aiPriceChart.data.labels = aiState.priceHistory.map(p => p.time);
-            aiPriceChart.data.datasets[0].data = aiState.priceHistory.map(p => p.price);
-            aiPriceChart.update('none');
-        }
-
-        function changeAICrypto() {
-            aiState.selectedCrypto = document.getElementById('aiCryptoSelect').value;
-            aiState.priceHistory = [];
-            connectAIWebSocket();
-        }
-
-        async function requestAIWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    aiState.wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('✅ Wake Lock AI activé');
-                    document.getElementById('aiWakeLockStatus').textContent = 'Actif (Wake Lock)';
-                    
-                    aiState.wakeLock.addEventListener('release', () => {
-                        console.log('⚠️ Wake Lock AI libéré');
-                        setTimeout(requestAIWakeLock, 1000);
-                    });
-                } else {
-                    console.log('⚠️ Wake Lock non supporté');
-                    document.getElementById('aiWakeLockStatus').textContent = 'Actif (Alternatif)';
-                }
-            } catch (err) {
-                console.warn('⚠️ Wake Lock AI non disponible');
-                document.getElementById('aiWakeLockStatus').textContent = 'Actif (Alternatif)';
-            }
-        }
-
-        function startAIUptimeCounter() {
-            aiState.startTime = Date.now();
-            aiUptimeInterval = setInterval(() => {
-                const elapsed = Date.now() - aiState.startTime;
-                const hours = Math.floor(elapsed / 3600000);
-                const minutes = Math.floor((elapsed % 3600000) / 60000);
-                const seconds = Math.floor((elapsed % 60000) / 1000);
-                
-                document.getElementById('aiUptime').textContent = 
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function switchAIConnectionMode() {
-            aiState.connectionMode = document.getElementById('aiConnectionMode').value;
-            
-            if (aiState.connectionMode === 'privatekey') {
-                document.getElementById('aiPrivatekeySection').style.display = 'block';
-            } else {
-                document.getElementById('aiPrivatekeySection').style.display = 'none';
-            }
-        }
-
-        function toggleAIPrivateKeyVisibility() {
-            const input = document.getElementById('aiPrivateKeyInput');
-            input.type = input.type === 'password' ? 'text' : 'password';
-        }
-
-        async function connectAIWithPrivateKey() {
-            const pkInput = document.getElementById('aiPrivateKeyInput').value.trim();
-            
-            if (!pkInput) {
-                alert('❌ Entrez votre clé privée');
-                return;
-            }
-
-            try {
-                const privateKey = pkInput.startsWith('0x') ? pkInput : '0x' + pkInput;
-                
-                if (privateKey.length !== 66) {
-                    alert('❌ Clé privée invalide');
-                    return;
-                }
-                
-                aiState.provider = new ethers.providers.JsonRpcProvider(BSC_RPC);
-                aiState.privateKeyWallet = new ethers.Wallet(privateKey, aiState.provider);
-                aiState.account = aiState.privateKeyWallet.address;
-                
-                console.log('✅ Mode Auto AI activé:', aiState.account);
-                alert('✅ Mode Automatique 24/7 activé pour le bot IA !');
-                
-                document.getElementById('aiConnectionStatus').innerHTML = `
-                    <span class="status-dot status-online"></span>
-                    Mode Auto
-                `;
-                
-            } catch (error) {
-                console.error('❌ Erreur clé privée AI:', error);
-                alert('❌ Clé privée invalide: ' + error.message);
-            }
-        }
-
-        function setAICapital() {
-            const capital = parseFloat(document.getElementById('aiTradingCapital').value);
-            
-            if (!capital || capital < 10) {
-                alert('❌ Capital minimum: 10 USDT');
-                return;
-            }
-            
-            if (capital > aiState.balances.usdt) {
-                alert('❌ Capital supérieur au solde disponible');
-                return;
-            }
-            
-            aiState.capital = capital;
-            alert(`✅ Capital défini: ${capital} USDT pour la compétition IA`);
-        }
-
-        function updateAISlippage() {
-            const slippage = parseFloat(document.getElementById('aiSlippageInput').value);
-            
-            if (slippage < 0.5 || slippage > 10) {
-                alert('❌ Slippage doit être entre 0.5% et 10%');
-                return;
-            }
-            
-            aiState.slippage = slippage;
-            alert(`✅ Slippage mis à jour: ${slippage}%`);
-            addAILog('system', '⚙️ Configuration', `Slippage: ${slippage}%`);
-        }
-
-        function toggleAISelection(aiName) {
-            aiState.activeAIs[aiName] = !aiState.activeAIs[aiName];
-            
-            const card = document.getElementById(`ai-card-${aiName}`);
-            const checkbox = document.getElementById(`ai-check-${aiName}`);
-            
-            if (aiState.activeAIs[aiName]) {
-                card.classList.add('active');
-                checkbox.checked = true;
-            } else {
-                card.classList.remove('active');
-                checkbox.checked = false;
-            }
-        }
-
-        async function startAICompetition() {
-            const activeCount = Object.values(aiState.activeAIs).filter(v => v).length;
-            
-            if (activeCount === 0) {
-                alert('❌ Sélectionnez au moins une IA');
-                return;
-            }
-            
-            if (!aiState.isConnected || aiState.capital === 0) {
-                alert('❌ Définissez le capital avant de démarrer');
-                return;
-            }
-            
-            aiState.competitionRunning = true;
-            
-            document.getElementById('aiStartBtn').style.display = 'none';
-            document.getElementById('aiStopBtn').style.display = 'block';
-            
-            addAILog('system', '🚀 Compétition démarrée !', `${activeCount} IA(s) actives • Capital: $${aiState.capital}`);
-            
-            aiCompetitionInterval = setInterval(() => {
-                analyzeAndTradeAI();
-            }, 60000); // Check toutes les minutes
-            
-            console.log('✅ Compétition IA démarrée');
-        }
-
-        function stopAICompetition() {
-            aiState.competitionRunning = false;
-            
-            if (aiCompetitionInterval) {
-                clearInterval(aiCompetitionInterval);
-                aiCompetitionInterval = null;
-            }
-            
-            document.getElementById('aiStartBtn').style.display = 'block';
-            document.getElementById('aiStopBtn').style.display = 'none';
-            
-            addAILog('system', '⏸️ Compétition arrêtée', 'Toutes les IA ont été mises en pause');
-            
-            console.log('⏸️ Compétition IA arrêtée');
-        }
-
-        async function analyzeAndTradeAI() {
-            if (!aiState.competitionRunning) return;
-            
-            console.log('📊 Analyse IA en cours...');
-            
-            for (const [aiName, isActive] of Object.entries(aiState.activeAIs)) {
-                if (!isActive) continue;
-                
-                // Simulation simple pour l'exemple
-                const sentiment = Math.random() > 0.6 ? 'BUY' : (Math.random() > 0.5 ? 'SELL' : 'HOLD');
-                
-                if (sentiment === 'BUY' && !aiState.positions[aiName]) {
-                    addAILog(aiName, '🔍 ANALYSE', 'Signal d\'achat détecté');
-                } else if (sentiment === 'SELL' && aiState.positions[aiName]) {
-                    addAILog(aiName, '🔍 ANALYSE', 'Signal de vente détecté');
-                }
-            }
-            
-            updateAILeaderboard();
-        }
-
-        function updateAILeaderboard() {
-            const sorted = Object.entries(aiState.aiStats)
-                .filter(([name]) => aiState.activeAIs[name])
-                .sort(([, a], [, b]) => b.profit - a.profit);
-            
-            const icons = { claude: '🧠', gemini: '💎', chatgpt: '🚀', grok: '⚡' };
-            
-            const html = sorted.map(([name, stats], index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🔹';
-                const winRate = stats.trades > 0 ? ((stats.wins / stats.trades) * 100).toFixed(1) : 0;
-                
-                return `
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 slide-in">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="text-2xl">${medal}</span>
-                                <span class="text-xl">${icons[name]}</span>
-                                <span class="font-bold text-gray-800">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
-                            </div>
-                            <span class="text-xl font-bold ${stats.profit >= 0 ? 'text-green-600' : 'text-red-600'}">
-                                ${stats.profit >= 0 ? '+' : ''}$${stats.profit.toFixed(2)}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-xs text-gray-600">
-                            <div>Trades: <span class="text-gray-800 font-bold">${stats.trades}</span></div>
-                            <div>Wins: <span class="text-green-600 font-bold">${stats.wins}</span></div>
-                            <div>Win Rate: <span class="font-bold">${winRate}%</span></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            document.getElementById('aiLeaderboard').innerHTML = html || '<div class="text-center text-gray-500 py-8">Aucune IA active</div>';
-        }
-
-        function addAILog(source, action, details) {
-            const timestamp = new Date().toLocaleTimeString();
-            const icons = { 
-                claude: '🧠', 
-                gemini: '💎', 
-                chatgpt: '🚀',
-                grok: '⚡',
-                system: '⚙️'
-            };
-            
-            const log = { timestamp, source, action, details };
-            
-            aiState.tradeLogs.unshift(log);
-            if (aiState.tradeLogs.length > 100) aiState.tradeLogs.pop();
-            
-            renderAILogs();
-        }
-
-        function renderAILogs() {
-            const icons = { 
-                claude: '🧠', 
-                gemini: '💎', 
-                chatgpt: '🚀',
-                grok: '⚡',
-                system: '⚙️'
-            };
-            
-            const html = aiState.tradeLogs.map(log => `
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 slide-in">
-                    <div class="flex items-start gap-3">
-                        <span class="text-2xl">${icons[log.source] || '📊'}</span>
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="font-bold text-gray-800">${log.source.toUpperCase()}</span>
-                                <span class="text-xs text-gray-500">${log.timestamp}</span>
-                            </div>
-                            <p class="text-sm font-semibold mb-1 text-gray-700">${log.action}</p>
-                            <p class="text-xs text-gray-600">${log.details}</p>
-                        </div>
-                    </div>
+        function loadTradingProBot() {
+            const content = document.getElementById('tradingProContent');
+            content.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-xl">Chargement du Bot Trading Pro...</p>
                 </div>
-            `).join('');
-            
-            document.getElementById('aiTradeLogs').innerHTML = html || 
-                '<div class="text-center text-gray-500 py-8">Aucun trade pour le moment</div>';
-        }
+            `;
 
-        function clearAILogs() {
-            aiState.tradeLogs = [];
-            renderAILogs();
+            // Simulation du chargement (à remplacer par le vrai bot)
+            setTimeout(() => {
+                content.innerHTML = `
+                    <div class="glass-effect rounded-2xl p-8 text-center">
+                        <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                            📊 Bot Trading Pro - 6 Indicateurs
+                        </h1>
+                        <p class="text-xl text-white/80 mb-6">Bot de trading professionnel avec 6 indicateurs techniques</p>
+                        
+                        <div class="bg-green-500/20 border border-green-500 rounded-xl p-6 mb-6">
+                            <h3 class="text-2xl font-bold text-green-400 mb-4">🎯 Fonctionnalités</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                                <div class="bg-black/30 rounded-lg p-4">
+                                    <p class="font-bold text-white mb-2">📊 6 Indicateurs</p>
+                                    <p class="text-sm text-gray-300">RSI, MACD, EMA, Volume, Bollinger Bands, Stochastic RSI</p>
+                                </div>
+                                <div class="bg-black/30 rounded-lg p-4">
+                                    <p class="font-bold text-white mb-2">🎯 Stratégies</p>
+                                    <p class="text-sm text-gray-300">TP: +3.5% | SL: -3.0% | Trailing: 0.5%</p>
+                                </div>
+                                <div class="bg-black/30 rounded-lg p-4">
+                                    <p class="font-bold text-white mb-2">🤖 Modes</p>
+                                    <p class="text-sm text-gray-300">Manuel (MetaMask) ou Auto 24/7 (Clé privée)</p>
+                                </div>
+                                <div class="bg-black/30 rounded-lg p-4">
+                                    <p class="font-bold text-white mb-2">📱 Telegram</p>
+                                    <p class="text-sm text-gray-300">Notifications en temps réel</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-500/20 border border-blue-500 rounded-xl p-6">
+                            <p class="text-blue-300 text-lg mb-4">💡 <strong>Pour utiliser ce bot:</strong></p>
+                            <p class="text-blue-200 mb-4">Ouvre le fichier <strong>bot-trading-pro.html</strong> séparément pour accéder à toutes les fonctionnalités.</p>
+                            <button onclick="window.open('bot-trading-pro.html', '_blank')" class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-bold text-lg transition-all">
+                                🚀 Ouvrir le Bot Trading Pro
+                            </button>
+                        </div>
+
+                        <div class="mt-6 text-sm text-gray-400">
+                            <p>⚠️ Le bot complet nécessite d'être ouvert dans son propre fichier HTML pour des raisons de performance et de sécurité.</p>
+                        </div>
+                    </div>
+                `;
+            }, 1500);
         }
 
         // Écouter les changements de compte
@@ -1267,8 +551,8 @@
             });
         }
 
-        console.log('🐱 JERCAT Trading Platform chargée');
-        console.log('✅ 2 bots disponibles: Bot Pro + Compétition IA');
+        console.log('🐱 JERCAT Trading Platform Complete chargée');
+        console.log('✅ 4 bots disponibles: Trading Pro + DCA Bot + JERCAT DEX + AI Competition');
     </script>
 </body>
 </html>
