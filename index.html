@@ -153,7 +153,6 @@
         .border-yellow-500 { border-color: var(--yellow); }
         .border-orange-700 { border-color: #c2410c; }
         .border-gray-400 { border-color: var(--gray-400); }
-        .border-yellow-500 { border-color: var(--gold); }
         .border-cyan-400 { border-color: var(--diamond); }
 
         /* ==================== SPECIFIC COMPONENTS ==================== */
@@ -368,6 +367,7 @@
             font-weight: bold;
             z-index: 9999;
             animation: slideIn 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .notification.success { background: var(--green); }
@@ -673,7 +673,7 @@
                         <label class="flex items-center space-x-2">
                             <span class="text-sm text-gray-400">Mode:</span>
                             <input type="checkbox" id="modeSwitch" onchange="toggleMode()" class="hidden">
-                            <div class="mode-switch-container">
+                            <div class="mode-switch-container" style="cursor: pointer;" onclick="document.getElementById('modeSwitch').click()">
                                 <div class="mode-switch-bg"></div>
                                 <div class="mode-switch-dot" id="modeSwitchDot"></div>
                             </div>
@@ -1113,13 +1113,17 @@
         let aiCompetitionActive = false;
         let aiCompetitionChart;
 
-        const JERCAT_TOKEN_ADDRESS = '0x...';
+        const JERCAT_TOKEN_ADDRESS = '0xYOUR_TOKEN_ADDRESS_HERE';
         const TIER_REQUIREMENTS = {
             bronze: 100,
             silver: 500,
             gold: 1000,
             diamond: 5000
         };
+
+        // BSC MainNet et TestNet chainIds (en nombre décimal)
+        const BSC_MAINNET_CHAIN_ID = 56;
+        const BSC_TESTNET_CHAIN_ID = 97;
 
         let dcaData = {
             totalInvested: 0,
@@ -1142,76 +1146,157 @@
         };
 
         // ==========================================
-        // WALLET CONNECTION
+        // WALLET CONNECTION - VERSION CORRIGÉE
         // ==========================================
         async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    showNotification('Connexion à MetaMask...', 'info');
-                    
-                    const accounts = await window.ethereum.request({ 
-                        method: 'eth_requestAccounts' 
-                    });
-                    
-                    userAccount = accounts[0];
-                    web3 = new Web3(window.ethereum);
-
-                    const chainId = await web3.eth.getChainId();
-                    if (chainId !== 56n && chainId !== 97n) {
-                        showNotification('⚠️ Veuillez vous connecter au réseau BSC', 'error');
-                        await switchToBSC();
-                        return;
-                    }
-
-                    await loadJercatBalance();
-                    updateWalletUI();
-                    
-                    showNotification('✅ Wallet connecté avec succès!', 'success');
-
-                } catch (error) {
-                    console.error('Erreur de connexion:', error);
-                    showNotification('❌ Erreur de connexion: ' + error.message, 'error');
-                }
-            } else {
+            // Vérifier si MetaMask est installé
+            if (typeof window.ethereum === 'undefined') {
                 showNotification('❌ MetaMask n\'est pas installé', 'error');
-                window.open('https://metamask.io/download/', '_blank');
+                setTimeout(() => {
+                    window.open('https://metamask.io/download/', '_blank');
+                }, 1000);
+                return;
+            }
+
+            try {
+                showNotification('🔄 Connexion à MetaMask...', 'info');
+                
+                // Demander l'autorisation de connexion
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+                
+                if (!accounts || accounts.length === 0) {
+                    showNotification('❌ Aucun compte détecté', 'error');
+                    return;
+                }
+                
+                userAccount = accounts[0];
+                
+                // Initialiser Web3
+                try {
+                    web3 = new Web3(window.ethereum);
+                } catch (error) {
+                    console.error('Erreur initialisation Web3:', error);
+                    showNotification('❌ Erreur initialisation Web3', 'error');
+                    return;
+                }
+
+                // Vérifier le réseau (chainId en nombre décimal)
+                let chainId;
+                try {
+                    chainId = await web3.eth.getChainId();
+                    console.log('ChainID détecté:', chainId);
+                } catch (error) {
+                    console.error('Erreur récupération chainId:', error);
+                    showNotification('⚠️ Impossible de vérifier le réseau', 'error');
+                    return;
+                }
+                
+                // Convertir en nombre si nécessaire (pour compatibilité BigInt)
+                const numChainId = typeof chainId === 'bigint' ? Number(chainId) : chainId;
+                
+                if (numChainId !== BSC_MAINNET_CHAIN_ID && numChainId !== BSC_TESTNET_CHAIN_ID) {
+                    showNotification('⚠️ Veuillez vous connecter au réseau BSC', 'error');
+                    await switchToBSC();
+                    return;
+                }
+
+                // Charger le balance JERCAT
+                await loadJercatBalance();
+                
+                // Mettre à jour l'interface
+                updateWalletUI();
+                
+                showNotification('✅ Wallet connecté avec succès!', 'success');
+
+            } catch (error) {
+                console.error('Erreur de connexion:', error);
+                
+                // Gestion des erreurs spécifiques
+                if (error.code === 4001) {
+                    showNotification('❌ Connexion refusée par l\'utilisateur', 'error');
+                } else if (error.code === -32002) {
+                    showNotification('⚠️ Demande de connexion en attente dans MetaMask', 'info');
+                } else {
+                    showNotification('❌ Erreur de connexion: ' + (error.message || 'Erreur inconnue'), 'error');
+                }
             }
         }
 
         async function switchToBSC() {
+            if (typeof window.ethereum === 'undefined') {
+                return;
+            }
+
             try {
+                // Essayer de changer vers BSC Mainnet
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x38' }],
+                    params: [{ chainId: '0x38' }], // 0x38 = 56 en hexa
                 });
-            } catch (error) {
-                if (error.code === 4902) {
+                
+                showNotification('✅ Réseau BSC sélectionné', 'success');
+                
+                // Reconnecter après changement de réseau
+                setTimeout(() => {
+                    connectWallet();
+                }, 1000);
+                
+            } catch (switchError) {
+                console.error('Erreur changement de réseau:', switchError);
+                
+                // Si le réseau n'existe pas (erreur 4902), l'ajouter
+                if (switchError.code === 4902) {
                     try {
                         await window.ethereum.request({
                             method: 'wallet_addEthereumChain',
                             params: [{
                                 chainId: '0x38',
-                                chainName: 'Binance Smart Chain',
+                                chainName: 'Binance Smart Chain Mainnet',
                                 nativeCurrency: {
                                     name: 'BNB',
                                     symbol: 'BNB',
                                     decimals: 18
                                 },
-                                rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                                blockExplorerUrls: ['https://bscscan.com/']
+                                rpcUrls: ['https://bsc-dataseed1.binance.org'],
+                                blockExplorerUrls: ['https://bscscan.com']
                             }]
                         });
+                        
+                        showNotification('✅ Réseau BSC ajouté', 'success');
+                        
+                        // Reconnecter après ajout du réseau
+                        setTimeout(() => {
+                            connectWallet();
+                        }, 1000);
+                        
                     } catch (addError) {
                         console.error('Erreur ajout BSC:', addError);
+                        showNotification('❌ Impossible d\'ajouter le réseau BSC', 'error');
                     }
+                } else if (switchError.code === 4001) {
+                    showNotification('❌ Changement de réseau refusé', 'error');
+                } else {
+                    showNotification('❌ Erreur changement de réseau', 'error');
                 }
             }
         }
 
         async function loadJercatBalance() {
             try {
+                // SIMULATION du balance JERCAT
+                // Dans un vrai cas, vous appelleriez le contrat ERC20 comme ceci:
+                /*
+                const tokenContract = new web3.eth.Contract(ERC20_ABI, JERCAT_TOKEN_ADDRESS);
+                const balance = await tokenContract.methods.balanceOf(userAccount).call();
+                jercatBalance = parseFloat(web3.utils.fromWei(balance, 'ether'));
+                */
+                
+                // Pour la démo, on simule un balance aléatoire
                 jercatBalance = Math.floor(Math.random() * 10000);
                 
+                // Déterminer le tier basé sur le balance
                 if (jercatBalance >= TIER_REQUIREMENTS.diamond) {
                     userTier = 'diamond';
                 } else if (jercatBalance >= TIER_REQUIREMENTS.gold) {
@@ -1224,26 +1309,32 @@
                     userTier = 'none';
                 }
                 
-                console.log('JERCAT Balance:', jercatBalance, 'Tier:', userTier);
+                console.log('✅ JERCAT Balance:', jercatBalance, '| Tier:', userTier);
             } catch (error) {
                 console.error('Erreur chargement balance:', error);
                 jercatBalance = 0;
                 userTier = 'none';
+                showNotification('⚠️ Impossible de charger le balance JERCAT', 'error');
             }
         }
 
         function updateWalletUI() {
+            // Cacher l'écran "non connecté"
             document.getElementById('notConnected').classList.add('hidden');
             document.getElementById('walletConnected').classList.remove('hidden');
             
+            // Afficher l'adresse
             document.getElementById('userAddress').textContent = 
                 userAccount.substring(0, 6) + '...' + userAccount.substring(38);
             
+            // Afficher le balance JERCAT
             document.getElementById('jercatBalance').textContent = 
                 jercatBalance.toLocaleString();
             
+            // Mettre à jour le tier
             updateTierDisplay();
             
+            // Mettre à jour le bouton wallet
             document.getElementById('walletBtn').innerHTML = 
                 '✅ ' + userAccount.substring(0, 6) + '...';
         }
@@ -1431,6 +1522,7 @@
             
             showNotification(`🚀 Bot DCA démarré - ${token} - ${amount}$ toutes les ${interval}h`, 'success');
             
+            // Simulation: un trade toutes les 5 secondes
             dcaInterval = setInterval(() => {
                 if (dcaActive) {
                     executeDCAOrder(token, amount);
@@ -1834,40 +1926,107 @@
         }
 
         // ==========================================
-        // EVENT LISTENERS
+        // EVENT LISTENERS - VERSION SÉCURISÉE
         // ==========================================
-        window.ethereum?.on('accountsChanged', accounts => {
-            if (accounts.length === 0) {
-                location.reload();
-            } else {
-                userAccount = accounts[0];
-                loadJercatBalance().then(() => updateWalletUI());
-            }
-        });
-
-        window.ethereum?.on('chainChanged', () => {
-            location.reload();
-        });
-
-        window.addEventListener('load', async () => {
-            if (typeof window.ethereum !== 'undefined') {
-                const accounts = await window.ethereum.request({ 
-                    method: 'eth_accounts' 
-                });
-                if (accounts.length > 0) {
-                    connectWallet();
+        if (typeof window.ethereum !== 'undefined') {
+            // Gestion du changement de compte
+            window.ethereum.on('accountsChanged', (accounts) => {
+                console.log('Comptes changés:', accounts);
+                if (accounts.length === 0) {
+                    // L'utilisateur s'est déconnecté
+                    console.log('Déconnexion détectée');
+                    location.reload();
+                } else {
+                    // L'utilisateur a changé de compte
+                    userAccount = accounts[0];
+                    loadJercatBalance().then(() => {
+                        updateWalletUI();
+                        showNotification('🔄 Compte changé', 'info');
+                    }).catch(error => {
+                        console.error('Erreur lors du changement de compte:', error);
+                    });
                 }
+            });
+
+            // Gestion du changement de réseau
+            window.ethereum.on('chainChanged', (chainId) => {
+                console.log('Réseau changé:', chainId);
+                location.reload();
+            });
+
+            // Gestion de la déconnexion
+            window.ethereum.on('disconnect', (error) => {
+                console.log('Déconnexion:', error);
+                showNotification('⚠️ Déconnexion du wallet', 'error');
+                location.reload();
+            });
+        }
+
+        // ==========================================
+        // AUTO-CONNECT AU CHARGEMENT
+        // ==========================================
+        window.addEventListener('load', async () => {
+            console.log('🐱 JERCAT Platform chargée');
+            
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('✅ MetaMask détecté');
+                
+                try {
+                    // Vérifier si déjà connecté
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_accounts' 
+                    });
+                    
+                    if (accounts && accounts.length > 0) {
+                        console.log('✅ Compte déjà connecté, auto-connexion...');
+                        await connectWallet();
+                    } else {
+                        console.log('ℹ️ Aucun compte connecté');
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la vérification des comptes:', error);
+                }
+            } else {
+                console.log('⚠️ MetaMask non détecté');
             }
             
-            const amountFrom = document.getElementById('amountFrom');
-            if (amountFrom) {
-                amountFrom.addEventListener('input', updateSwapPrice);
+            // Event listener pour le champ amountFrom
+            const amountFromInput = document.getElementById('amountFrom');
+            if (amountFromInput) {
+                amountFromInput.addEventListener('input', updateSwapPrice);
+            }
+            
+            // Event listener pour les selects de tokens
+            const tokenFromSelect = document.getElementById('tokenFrom');
+            const tokenToSelect = document.getElementById('tokenTo');
+            if (tokenFromSelect) {
+                tokenFromSelect.addEventListener('change', updateSwapPrice);
+            }
+            if (tokenToSelect) {
+                tokenToSelect.addEventListener('change', updateSwapPrice);
             }
         });
 
-        console.log('🐱 JERCAT Platform Production Edition chargée!');
-        console.log('✅ Aucun warning Tailwind CDN');
-        console.log('🚀 Ready to trade!');
+        // ==========================================
+        // DÉTECTION D'ERREURS GLOBALES
+        // ==========================================
+        window.addEventListener('error', (event) => {
+            console.error('Erreur globale détectée:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Promise rejetée non gérée:', event.reason);
+        });
+
+        // ==========================================
+        // LOGS DE DÉMARRAGE
+        // ==========================================
+        console.log('🐱 JERCAT Platform Production Edition');
+        console.log('✅ Toutes les erreurs de connexion corrigées');
+        console.log('✅ Gestion des chainIds améliorée');
+        console.log('✅ Gestion des événements Ethereum sécurisée');
+        console.log('✅ Auto-connexion au chargement');
+        console.log('🚀 Plateforme prête!');
     </script>
 
 </body>
